@@ -3,26 +3,22 @@ const http = require('http');
 const socketIO = require('socket.io');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
 
 const QUESTION_FILE = path.join(__dirname, 'questionbase.json');
+
 let questions = [];
 let gameOpen = false;
 let gameStarted = false;
 const players = {};
 
-// Load and save
+// Load/save
 function loadQuestions() {
-  try {
-    questions = JSON.parse(fs.readFileSync(QUESTION_FILE, 'utf8'));
-  } catch {
-    questions = [];
-  }
+  try { questions = JSON.parse(fs.readFileSync(QUESTION_FILE)); }
+  catch { questions = []; }
 }
 function saveQuestions() {
   fs.writeFileSync(QUESTION_FILE, JSON.stringify(questions, null, 2));
 }
-
 loadQuestions();
 
 const app = express();
@@ -32,7 +28,7 @@ const io = socketIO(server);
 app.use(express.json());
 app.use(express.static('public'));
 
-// Admin panel
+// Admin endpoints
 app.get('/evergameadmin865', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
@@ -43,7 +39,6 @@ app.get('/evergameadmin865/questions', (req, res) => {
 app.post('/evergameadmin865/questions', (req, res) => {
   loadQuestions();
   const { order, question, options, answerIndex } = req.body;
-  // filter duplicates
   questions = questions.filter(q => !(q.order === +order && q.question === question));
   questions.push({ order: +order, question, options, answerIndex: +answerIndex });
   saveQuestions();
@@ -61,50 +56,49 @@ app.post('/evergameadmin865/close', (req, res) => {
   res.json({ success: true });
 });
 app.post('/evergameadmin865/start', (req, res) => {
-  if (!gameOpen) return res.status(400).json({ error: 'Game closed' });
+  if (!gameOpen) return res.status(400).json({ error: 'closed' });
   gameStarted = true;
-  // countdown
+  // Countdown 5..1
   for (let i = 5; i >= 1; i--) {
     setTimeout(() => io.emit('countdown', i), (6 - i) * 1000);
   }
-  setTimeout(() => io.emit('countdown', 0), 6000);
+  // After countdown, emit startQuiz
+  setTimeout(() => io.emit('startQuiz'), 6000);
   res.json({ success: true });
 });
 
+// Pages
 app.get('/', (req, res) => {
   if (!gameOpen) return res.sendFile(path.join(__dirname, 'public', 'closed.html'));
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Socket logic
 io.on('connection', socket => {
   socket.on('join', nick => {
-    if (!gameOpen || !gameStarted) return;
-    players[socket.id] = { nickname: nick, level: 1, time: 0 };
-    io.emit('playerList', Object.values(players));
+    if (!gameOpen) return;
+    players[socket.id] = { nickname: nick, level: 1, time: 0, answered: false };
+    io.emit('playerList', Object.values(players).map(p=>({ nickname: p.nickname, level: p.level })));
   });
-  socket.on('answer', ({ index, time }) => {
+  socket.on('answer', idx => {
     const p = players[socket.id];
-    if (!p) return;
-    // find question pool by order = level
-    loadQuestions();
+    if (!p || !gameStarted) return;
     const pool = questions.filter(q => q.order === p.level);
-    if (!pool.length) return;
-    // match by tempId
-    const q = pool.find(q => q.tempId === p.currentQ);
+    const q = p.currentQ;
     if (!q) return;
-    const correct = +index === q.answerIndex;
-    if (correct) {
+    if (idx === q.answerIndex) {
       p.level++;
-      p.time += time;
+      p.time += Date.now() - q.startTime;
+      socket.emit('answerResult', { correct: true, correctIndex: q.answerIndex });
+    } else {
+      socket.emit('answerResult', { correct: false, correctIndex: q.answerIndex });
     }
-    socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
-    io.emit('playerList', Object.values(players));
-    // next question after delay
-    setTimeout(() => sendQuestion(socket.id), 1000);
+    io.emit('playerList', Object.values(players).map(p=>({ nickname: p.nickname, level: p.level })));
+    setTimeout(() => sendQuestion(socket.id), 1500);
   });
   socket.on('disconnect', () => {
     delete players[socket.id];
-    io.emit('playerList', Object.values(players));
+    io.emit('playerList', Object.values(players).map(p=>({ nickname: p.nickname, level: p.level })));
   });
 });
 
@@ -114,13 +108,13 @@ function sendQuestion(id) {
   loadQuestions();
   const pool = questions.filter(q => q.order === p.level);
   if (!pool.length) {
-    io.to(id).emit('won');
+    io.to(id).emit('won', { nickname: p.nickname });
     return;
   }
-  const q = pool[Math.floor(Math.random() * pool.length)];
-  q.tempId = Date.now() + Math.random();
-  players[id].currentQ = q.tempId;
+  const q = Object.assign({}, pool[Math.floor(Math.random()*pool.length)]);
+  q.startTime = Date.now();
+  players[id].currentQ = q;
   io.to(id).emit('question', { question: q.question, options: q.options });
 }
 
-server.listen(process.env.PORT || 3000, () => console.log('Running'));
+server.listen(3000, () => console.log('Server running'));

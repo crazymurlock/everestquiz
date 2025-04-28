@@ -1,15 +1,10 @@
-# Quiz Game Project
+# Quiz Game
 
-## Install
+## Setup
 ```
 npm install
 npm start
 ```
-
-## Admin
-- Panel: /evergameadmin865
-- Buttons: Open Game, Close Game, Start Game
-- Questions stored in questionbase.json
-
-## Game
-- Root / shows game when open, closed page otherwise
+- Admin: `/evergameadmin865`
+- Game: `/`
+- Questions stored in `questionbase.json`
