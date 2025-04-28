@@ -1,16 +1,14 @@
 const socket = io();
 const join = document.getElementById('join');
 const game = document.getElementById('game');
-const countdown = document.getElementById('countdown');
-const countNum = document.getElementById('count');
-const question = document.getElementById('question');
+const playersDiv = document.getElementById('players');
+const questionModal = document.getElementById('question');
 const qtext = document.getElementById('qtext');
 const opts = document.getElementById('opts');
 const end = document.getElementById('end');
-const win = document.getElementById('win');
-const board = document.getElementById('board');
-const qr = document.getElementById('qr');
-let start;
+const endText = document.getElementById('endText');
+let startTime;
+let players = {};
 
 join.querySelector('#joinBtn').onclick = () => {
   const nick = document.getElementById('nick').value.trim();
@@ -18,59 +16,73 @@ join.querySelector('#joinBtn').onclick = () => {
   socket.emit('join', nick);
   join.classList.add('hidden');
   game.classList.remove('hidden');
-  qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(location.href)}`;
 };
 
-let players = {};
-
 socket.on('playerList', list => {
-  const cont = document.getElementById('players');
-  cont.innerHTML=''; players={};
-  list.forEach((p,i)=>{
-    const el = document.createElement('div'); el.className='player';
-    const c = document.createElement('div'); c.className='circle'; c.innerText=p.nickname[0].toUpperCase();
-    const n = document.createElement('div'); n.className='nick'; n.innerText=p.nickname;
-    el.append(c,n); cont.append(el);
-    players[p.nickname]={el,score:0,time:0};
+  playersDiv.innerHTML = '';
+  players = {};
+  list.forEach((p,i) => {
+    const el = document.createElement('div'); el.className = 'player';
+    const c = document.createElement('div'); c.className = 'circle'; c.innerText = p.nickname.charAt(0).toUpperCase();
+    const n = document.createElement('div'); n.className = 'nick'; n.innerText = p.nickname;
+    el.append(c,n);
+    playersDiv.append(el);
+    players[p.nickname] = { el, level: p.level || 1 };
   });
-  update();
+  updatePositions();
 });
 
 socket.on('countdown', n => {
-  if(n>0){countNum.innerText=n;countdown.classList.remove('hidden');}
-  else countdown.classList.add('hidden');
+  // reuse question modal for countdown
+  qtext.innerText = n>0? n : '';
+  questionModal.classList.toggle('hidden', n===0);
 });
 
 socket.on('question', data => {
-  qtext.innerText=data.question; opts.innerHTML='';
-  data.options.forEach((o,i)=>{const b=document.createElement('button');
-  b.className='option-btn';b.innerText=o;b.onclick=()=>{
-    socket.emit('answer',{index:i,time:(Date.now()-start)/1000});
-    opts.querySelectorAll('button').forEach(x=>x.disabled=true);
-  };opts.append(b);});
-  question.classList.remove('hidden');start=Date.now();
-});
-
-socket.on('results', arr => {
-  question.classList.add('hidden');
-  arr.forEach(r=>{players[r.nickname].score=r.score;players[r.nickname].time=r.time;});
-  update();
-});
-
-socket.on('gameOver', data => {
-  game.classList.add('hidden'); end.classList.remove('hidden');
-  win.innerText=data.winner;
-  board.innerHTML='';data.leaderboard.forEach((p,i)=>{
-    board.innerHTML+=`<tr><td>${i+1}</td><td>${p.nickname}</td><td>${p.score}</td><td>${p.time.toFixed(2)}</td></tr>`;
+  qtext.innerText = data.question;
+  opts.innerHTML = '';
+  data.options.forEach((o,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerText = o;
+    btn.onclick = () => {
+      startTime = Date.now();
+      socket.emit('answer', { index: i, time: 0 });
+      // disable until result
+      opts.querySelectorAll('button').forEach(b=>b.disabled=true);
+    };
+    opts.append(btn);
   });
+  questionModal.classList.remove('hidden');
+  startTime = Date.now();
 });
 
-function update(){
-  const cont=document.getElementById('players');
-  const w=cont.clientWidth,h=cont.clientHeight;
-  Object.values(players).forEach((p,i)=>{
-    const x=(i+1)/(Object.keys(players).length+1)*w-20;
-    const y=p.score*60;
-    p.el.style.left=x+'px';p.el.style.bottom=y+'px';
+socket.on('answerResult', res => {
+  const buttons = opts.querySelectorAll('button');
+  if (res.correct) {
+    buttons.forEach((b,i) => { if(i===res.correctIndex) b.classList.add('correct'); });
+  } else {
+    buttons.forEach((b,i) => {
+      if (i===res.correctIndex) b.classList.add('correct');
+      else if (!b.disabled) b.classList.add('wrong');
+    });
+  }
+  setTimeout(() => {
+    questionModal.classList.add('hidden');
+  }, 1000);
+});
+
+socket.on('won', () => {
+  endText.innerText = 'You reached the top!';
+  end.classList.remove('hidden');
+});
+
+function updatePositions() {
+  const w = playersDiv.clientWidth;
+  Object.values(players).forEach((p,i) => {
+    const x = ((i+1)/(Object.keys(players).length+1))*w - 20;
+    const y = ((p.level||1)-1)*60;
+    p.el.style.left = x+'px';
+    p.el.style.bottom = y+'px';
   });
 }

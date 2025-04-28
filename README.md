@@ -1,13 +1,15 @@
-# Enhanced Quiz Game
+# Quiz Game
 
-- Admin at `/evergameadmin865`
-- Use **Raleway** font
-- Countdown before start
-- Random question per level
-- Leaderboard at end with flag image
+## Features
+- Questions by order only
+- Admin: Save/Load questions, Open/Close, Start game
+- Adaptive design for mobile
+- Highlight correct (#93EBA6) and wrong (#F99219) answers
+- Smooth animation
+- Flag at top
+- Asynchronous per-player questions
 
-**Run:**
-```
-npm install
-npm start
-```
+## Usage
+1. npm install
+2. npm start
+3. Admin: /evergameadmin865
