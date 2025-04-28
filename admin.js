@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('qform');
-  const optionsInputs = document.querySelectorAll('input[name="option"]');
   const qList = document.getElementById('qList');
+  const startBtn = document.getElementById('startBtn');
+  const optionsInputs = document.querySelectorAll('input[name="option"]');
+  const socket = io();
 
-  // Load existing questions
+  // Load questions
   fetch('/evergameadmin865/questions')
     .then(res => res.json())
     .then(data => {
@@ -18,19 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const question = document.getElementById('question').value;
     const options = Array.from(optionsInputs).map(i => i.value);
-    const answerIndex = document.getElementById('answerIndex').value;
     const order = document.getElementById('order').value;
-
+    const answerIndex = document.getElementById('answerIndex').value;
     fetch('/evergameadmin865/questions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question, options, answerIndex, order })
-    })
-    .then(res => res.json())
-    .then(j => {
-      if (j.success) {
-        alert('Saved!');
-        location.reload();
-      }
-    });
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({question, options, order, answerIndex})
+    }).then(()=> location.reload());
+  });
+
+  startBtn.onclick = () => {
+    fetch('/evergameadmin865/start', {method:'POST'})
+      .then(res => res.json())
+      .then(() => alert('Game starting!'));
+  };
 });

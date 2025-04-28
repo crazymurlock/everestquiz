@@ -1,21 +1,13 @@
-# Quiz Game with Raleway Font
+# Enhanced Quiz Game
 
-## Описание
-Реaltime-квиз до 300 игроков. Админская панель доступна по `/evergameadmin865`. Теперь весь интерфейс использует шрифт **Raleway**.
+- Admin at `/evergameadmin865`
+- Use **Raleway** font
+- Countdown before start
+- Random question per level
+- Leaderboard at end with flag image
 
-## Установка
-1. Склонируйте репозиторий
-   ```
-   git clone <repo-url>
-   cd quiz-game
-   ```
-2. Установите зависимости
-   ```
-   npm install
-   ```
-3. Запустите
-   ```
-   npm start
-   ```
-4. Админка: `http://localhost:3000/evergameadmin865` — создайте вопросы (1–5).
-   Игровая: `http://localhost:3000` — запускайте игру!
+**Run:**
+```
+npm install
+npm start
+```

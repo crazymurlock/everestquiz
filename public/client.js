@@ -1,90 +1,100 @@
 const socket = io();
 const joinDiv = document.getElementById('join');
 const gameDiv = document.getElementById('game');
-const resultsDiv = document.getElementById('results');
-const modal = document.getElementById('question-modal');
+const countdownModal = document.getElementById('countdown-modal');
+const countdownNumber = document.getElementById('countdown-number');
+const questionModal = document.getElementById('question-modal');
 const modalQuestion = document.getElementById('modal-question');
 const modalOptions = document.getElementById('modal-options');
+const resultsDiv = document.getElementById('results');
+const winnerDiv = document.getElementById('winner');
+const leaderboardBody = document.getElementById('leaderboard-body');
 
-// Show join
-joinDiv.style.display = 'block';
-const qrImg = document.getElementById('qr');
-qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(location.href)}`;
-
-// Join event
 document.getElementById('joinBtn').onclick = () => {
   const nick = document.getElementById('nick').value.trim();
   if (!nick) return;
   socket.emit('join', nick);
-  joinDiv.style.display = 'none';
-  gameDiv.style.display = 'block';
+  joinDiv.classList.add('hidden');
+  gameDiv.classList.remove('hidden');
+  qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(location.href)}`;
 };
 
-let playerData = {};
+let players = {};
 socket.on('playerList', list => {
   const container = document.getElementById('players');
   container.innerHTML = '';
-  playerData = {};
-  list.forEach((p, idx) => {
+  list.forEach((p, i) => {
     const el = document.createElement('div');
     el.className = 'player';
     const circle = document.createElement('div');
     circle.className = 'circle';
     circle.innerText = p.nickname.charAt(0).toUpperCase();
-    const nickSpan = document.createElement('span');
-    nickSpan.className = 'nick';
-    nickSpan.innerText = p.nickname;
-    el.appendChild(circle);
-    el.appendChild(nickSpan);
+    const nick = document.createElement('div');
+    nick.className = 'nick';
+    nick.innerText = p.nickname;
+    el.appendChild(circle); el.appendChild(nick);
     container.appendChild(el);
-    playerData[p.nickname] = { el, score: 0, timeRank: idx };
+    players[p.nickname] = { el, score:0, time:0 };
   });
   updatePositions();
 });
 
-let qStart;
+socket.on('countdown', num => {
+  if (num > 0) {
+    countdownNumber.innerText = num;
+    countdownModal.classList.remove('hidden');
+  } else {
+    countdownModal.classList.add('hidden');
+  }
+});
+
+let startTime;
 socket.on('question', ({ question, options }) => {
   modalQuestion.innerText = question;
   modalOptions.innerHTML = '';
-  options.forEach((text, i) => {
+  options.forEach((opt, idx) => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
-    btn.innerText = text;
+    btn.innerText = opt;
     btn.onclick = () => {
-      const t = (Date.now() - qStart) / 1000;
-      socket.emit('answer', { index: i, time: t });
-      Array.from(modalOptions.children).forEach(b => b.disabled = true);
+      const time = (Date.now() - startTime)/1000;
+      socket.emit('answer', { index: idx, time });
+      modalOptions.querySelectorAll('button').forEach(b=>b.disabled=true);
     };
     modalOptions.appendChild(btn);
   });
-  modal.classList.remove('hidden');
-  qStart = Date.now();
+  questionModal.classList.remove('hidden');
+  startTime = Date.now();
 });
 
 socket.on('results', ranking => {
-  ranking.forEach((r, i) => {
-    const p = playerData[r.nickname];
-    if (p) { p.score = r.score; p.timeRank = i; }
+  questionModal.classList.add('hidden');
+  ranking.forEach(r => {
+    players[r.nickname].score = r.score;
+    players[r.nickname].time = r.time;
   });
   updatePositions();
-  modal.classList.add('hidden');
 });
 
-socket.on('gameOver', winner => {
-  gameDiv.style.display = 'none';
-  resultsDiv.style.display = 'block';
-  document.getElementById('winner').innerText = `🎉 ${winner} reached the top! 🎉`;
+socket.on('gameOver', data => {
+  questionModal.classList.add('hidden');
+  gameDiv.classList.add('hidden');
+  resultsDiv.classList.remove('hidden');
+  winnerDiv.innerText = data.winner;
+  leaderboardBody.innerHTML = '';
+  data.leaderboard.forEach((p,i) => {
+    const row = `<tr><td>${i+1}</td><td>${p.nickname}</td><td>${p.score}</td><td>${p.time.toFixed(2)}</td></tr>`;
+    leaderboardBody.innerHTML += row;
+  });
 });
 
 function updatePositions() {
-  const container = document.getElementById('players');
-  const w = container.clientWidth;
-  const entries = Object.entries(playerData);
-  entries.forEach(([nick, p], idx) => {
-    const x = (idx + 1) / (entries.length + 1) * w - 20;
-    const y = p.score * 80 + (entries.length - p.timeRank) * 5;
-    p.el.style.left = `${x}px`;
-    p.el.style.bottom = `${y}px`;
-    p.el.title = `${nick}: ${p.score}`;
+  const cont = document.getElementById('players');
+  const w = cont.clientWidth, h = cont.clientHeight;
+  Object.values(players).forEach((p,i)=>{
+    const x = (i+1)/(Object.keys(players).length+1)*w - 20;
+    const y = p.score * 60;
+    p.el.style.left = x+'px';
+    p.el.style.bottom = y+'px';
   });
 }
