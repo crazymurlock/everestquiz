@@ -52,7 +52,6 @@ app.post('/evergameadmin865/questions', (req, res) => {
     arr = JSON.parse(fs.readFileSync(QUESTION_FILE, 'utf8'));
   } catch {}
   const { question, options, answerIndex, order } = req.body;
-  // Remove existing with same question and order
   arr = arr.filter(q => !(q.order === +order && q.question === question));
   arr.push({ order: +order, question, options, answerIndex: +answerIndex });
   fs.writeFileSync(QUESTION_FILE, JSON.stringify(arr, null, 2));
@@ -79,7 +78,6 @@ app.post('/evergameadmin865/start', (req, res) => {
   }
   setTimeout(() => {
     io.emit('countdown', 0);
-    // Send initial questions
     Object.keys(players).forEach(id => sendQuestion(id));
   }, 6000);
   res.json({ started: true });
@@ -135,6 +133,5 @@ function sendQuestion(id) {
   io.to(id).emit('question', { question: q.question, options: q.options });
 }
 
-// Initialize
 loadQuestions();
 server.listen(process.env.PORT || 3000, () => console.log('Server running'));
