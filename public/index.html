@@ -5,6 +5,7 @@
 body{font-family:'Raleway',sans-serif;background:#f3f4f6;margin:0;padding:0;display:flex;flex-direction:column;align-items:center;}
 .card{background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);margin:20px;padding:20px;width:90%;max-width:500px;}
 .hidden{display:none;}
+#flag{width:50px;margin-top:10px;}
 #players{position:relative;height:300px;margin-top:20px;}
 .player{position:absolute;display:flex;flex-direction:column;align-items:center;transition:bottom 0.5s;}
 .circle{width:40px;height:40px;border-radius:50%;background:#4f46e5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;}
@@ -26,21 +27,14 @@ body{font-family:'Raleway',sans-serif;background:#f3f4f6;margin:0;padding:0;disp
   <button id="joinBtn" style="width:100%;padding:10px;">Join</button>
 </div>
 <div id="game" class="card hidden">
+  <img id="flag" src="flag.png" alt="Flag">
   <div id="players"></div>
 </div>
-<div id="countdownModal" class="modal hidden">
-  <div class="modal-content"><h1 id="count"></h1></div>
-</div>
-<div id="questionModal" class="modal hidden">
-  <div class="modal-content">
-    <h3 id="qtext"></h3>
-    <div id="opts"></div>
-  </div>
-</div>
-<div id="endModal" class="modal hidden">
-  <div class="modal-content"><h2>You reached the top!</h2></div>
-</div>
+<div id="countdownModal" class="modal hidden"><div class="modal-content"><h1 id="count"></h1></div></div>
+<div id="questionModal" class="modal hidden"><div class="modal-content">
+  <h3 id="qtext"></h3><div id="opts"></div>
+</div></div>
+<div id="endModal" class="modal hidden"><div class="modal-content"><h2>You reached the top!</h2></div></div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="client.js"></script>
-</body>
-</html>
+</body></html>

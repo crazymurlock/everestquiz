@@ -1,32 +1,57 @@
 [
   {
     "order": 1,
-    "question": "Test1",
-    "options": ["1", "2", "3", "4"],
-    "answerIndex": 0
+    "question": "2 + 2 = ?",
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "answerIndex": 1
   },
   {
     "order": 2,
-    "question": "test2",
-    "options": ["1", "2", "3", "4"],
-    "answerIndex": 1
-  }
-{
-    "order": 3,
-    "question": "test3",
-    "options": ["1", "2", "3", "4"],
+    "question": "Capital of France?",
+    "options": [
+      "Berlin",
+      "Madrid",
+      "Paris",
+      "Rome"
+    ],
     "answerIndex": 2
-  }
-{
+  },
+  {
+    "order": 3,
+    "question": "Color of the sky?",
+    "options": [
+      "Green",
+      "Blue",
+      "Red",
+      "Yellow"
+    ],
+    "answerIndex": 1
+  },
+  {
     "order": 4,
-    "question": "test4",
-    "options": ["1", "2", "3", "4"],
-    "answerIndex": 3
-  }
-{
+    "question": "Water freezes at 0\u00b0C?",
+    "options": [
+      "Yes",
+      "No",
+      "Sometimes",
+      "Never"
+    ],
+    "answerIndex": 0
+  },
+  {
     "order": 5,
-    "question": "final?",
-    "options": ["yes", "no", "open", "closed"],
+    "question": "Sun rises in the East?",
+    "options": [
+      "True",
+      "False",
+      "Sometimes",
+      "Never"
+    ],
     "answerIndex": 0
   }
 ]

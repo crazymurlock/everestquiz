@@ -1,40 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body{font-family:'Raleway',sans-serif;background:#f3f4f6;padding:20px;}
-    .container{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:8px;}
-    label,button{display:block;width:100%;margin:10px 0;}
-    input,select,button,textarea{padding:10px;border:1px solid #ddd;border-radius:4px;font-size:14px;}
-    button{background:#4f46e5;color:#fff;border:none;cursor:pointer;}
-    ul{list-style:none;padding:0;}
-    li{background:#e5e7eb;margin:5px 0;padding:10px;border-radius:4px;}
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Admin Panel</h1>
-    <form id="qform">
-      <label>Order
-        <select id="order"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
-      </label>
-      <label>Question<textarea id="question"></textarea></label>
-      <label>Options (one per line)<textarea id="options"></textarea></label>
-      <label>Answer Index
-        <select id="answerIndex"><option>0</option><option>1</option><option>2</option><option>3</option></select>
-      </label>
-      <button type="submit">Save Question</button>
-    </form>
-    <button id="openBtn">Open Game</button>
-    <button id="closeBtn">Close Game</button>
-    <button id="startBtn">Start Game</button>
-    <h2>Existing Questions</h2>
-    <ul id="qList"></ul>
-  </div>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js"></script>
-</body>
-</html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet">
+<style>body{font-family:'Raleway',sans-serif;background:#f3f4f6;padding:20px;}
+.container{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:8px;}
+button{display:block;width:100%;padding:10px;margin:10px 0;border:none;border-radius:4px;background:#4f46e5;color:#fff;cursor:pointer;}
+</style>
+</head><body>
+<div class="container">
+  <h1>Admin Panel</h1>
+  <button id="openBtn">Open Game</button>
+  <button id="closeBtn">Close Game</button>
+  <button id="startBtn">Start Game</button>
+  <h2>Questions (manual in questionbase.json)</h2>
+  <ul id="qList"></ul>
+</div>
+<script>
+const qList = document.getElementById('qList');
+function loadQ() {
+  fetch('/evergameadmin865/questions').then(r=>r.json()).then(d=>{
+    qList.innerHTML='';d.forEach(q=>{
+      const li=document.createElement('li');
+      li.textContent=q.order+': '+q.question;
+      qList.append(li);
+    });
+  });
+}
+document.getElementById('openBtn').onclick=()=>fetch('/evergameadmin865/open',{method:'POST'}).then(()=>alert('Game opened'));
+document.getElementById('closeBtn').onclick=()=>fetch('/evergameadmin865/close',{method:'POST'}).then(()=>alert('Game closed'));
+document.getElementById('startBtn').onclick=()=>fetch('/evergameadmin865/start',{method:'POST'}).then(()=>alert('Starting countdown'));
+loadQ();
+</script>
+</body></html>
