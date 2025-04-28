@@ -1,7 +1,4 @@
-# Quiz Game
+# Quiz Game Setup
 
-## Run
-```
 npm install
 npm start
-```

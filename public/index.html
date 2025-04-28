@@ -1,32 +1,46 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport"content="width=device-width,initial-scale=1">
-<title>Quiz Game</title><link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap"rel="stylesheet"><style>
-body{font-family:'Raleway',sans-serif;background:#f5f5f5;margin:0;padding:0;display:flex;flex-direction:column;align-items:center;}
-.card{background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:20px;width:90%;max-width:400px;margin-top:40px;}
-input,button{width:100%;padding:12px;border-radius:6px;border:1px solid #ccc;font-size:16px;}
-button{border:none;background:#4f46e5;color:#fff;cursor:pointer;transition:background .3s;}
-button:hover{background:#4338ca;}
-#join{display:block;} #lobby,#game,#result{display:none;}
-#game{position:relative;width:100%;max-width:500px;height:400px;margin-top:40px;}
-#flag{width:50px;position:absolute;top:10px;left:50%;transform:translateX(-50%);}
-#playersContainer{position:absolute;bottom:150px;left:0;right:0;height:200px;}
-.player{position:absolute;display:flex;flex-direction:column;align-items:center;transition:bottom .5s,left .5s;}
-.circle{width:40px;height:40px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.nick{margin-top:4px;font-size:12px;text-align:center;width:50px;overflow:hidden;}
-#countdownOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;transition:opacity .3s;}
-#countdownOverlay.show{visibility:visible;opacity:1;}
-#countdownOverlay h1{color:#fff;font-size:72px;}
-#questionModal{position:fixed;bottom:0;left:0;width:100%;background:rgba(255,255,255,0.95);box-shadow:0 -2px 8px rgba(0,0,0,0.1);transform:translateY(100%);transition:transform .4s;}
-#questionModal.show{transform:translateY(0);}
-.option-btn{width:100%;padding:12px;margin:8px 0;border:none;border-radius:6px;background:#4f46e5;color:#fff;cursor:pointer;transition:background .3s;}
-.option-btn:hover{background:#4338ca;}
-.correct{background:#93EBA6!important;}
-.wrong{background:#F99219!important;}
-#result .card{max-width:500px;}
-</style></head><body>
-<div id="join" class="card"><h2>Введите никнейм</h2><input id="nick" placeholder="Никнейм"><button id="joinBtn">Присоединиться</button></div>
-<div id="lobby" class="card"><h2>Лобби</h2><table><thead><tr><th>Игроки</th></tr></thead><tbody id="players"></tbody></table></div>
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiz Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet">
+<style>
+body { font-family:'Raleway',sans-serif; background:#f5f5f5; margin:0; padding:0; }
+#join { display:flex; align-items:center; justify-content:center; height:100vh; }
+.card { background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:30px; width:90%; max-width:400px; text-align:center; }
+input { width:100%; padding:12px; margin:10px 0; border:none; border-bottom:2px solid #ccc; font-size:16px; transition:border-color .3s; }
+input:focus { outline:none; border-bottom-color:#4f46e5; }
+button { width:100%; padding:12px; margin-top:10px; border:none; border-radius:8px; background:linear-gradient(90deg,#667eea,#764ba2); color:#fff; font-size:16px; cursor:pointer; transition:opacity .3s; }
+button:hover { opacity:0.9; }
+#lobby, #game, #result { display:none; }
+#lobby, #result { padding:20px; text-align:center; }
+#lobby table, #result table { width:100%; border-collapse:collapse; margin-top:10px; }
+#lobby th, #lobby td, #result th, #result td { border-bottom:1px solid #eee; padding:8px; }
+#lobby th, #result th { background:#fafafa; }
+#game { position:relative; width:100%; max-width:600px; height:400px; margin:40px auto; }
+#flag { width:60px; position:absolute; top:20px; left:50%; transform:translateX(-50%); }
+#playersContainer { position:absolute; bottom:100px; left:0; right:0; height:200px; }
+.player { position:absolute; display:flex; flex-direction:column; align-items:center; transition:bottom 1s ease, left 1s ease; }
+.circle { width:48px; height:48px; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.nick { margin-top:6px; font-size:12px; text-align:center; width:60px; overflow:hidden; text-overflow:ellipsis; }
+#countdownOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:opacity .3s; }
+#countdownOverlay.show { visibility:visible; opacity:1; }
+#countdownOverlay h1 { color:#fff; font-size:96px; margin:0; }
+#questionModal { position:fixed; bottom:0; left:0; width:100%; background:rgba(255,255,255,0.95); box-shadow:0 -4px 12px rgba(0,0,0,0.1); transform:translateY(100%); transition:transform .4s; }
+#questionModal.show { transform:translateY(0); }
+#questionModal .card { margin:0; border-radius:0; box-shadow:none; }
+.option-btn { width:100%; padding:14px; margin:8px 0; border:none; border-radius:8px; background:#667eea; color:#fff; font-size:16px; cursor:pointer; transition:background .3s; }
+.option-btn:hover { background:#556cd6; }
+.correct { background:#93EBA6!important; }
+.wrong { background:#F99219!important; }
+</style>
+</head>
+<body>
+<div id="join"><div class="card"><h2>Введите никнейм</h2><input id="nick" placeholder="Никнейм"><button id="joinBtn">Присоединиться</button></div></div>
+<div id="lobby"><h2>Лобби</h2><table><thead><tr><th>Игроки</th></tr></thead><tbody id="players"></tbody></table></div>
 <div id="game"><img id="flag" src="flag.png"><div id="playersContainer"></div></div>
 <div id="countdownOverlay"><h1 id="countdownNum"></h1></div>
 <div id="questionModal"><div class="card"><h3 id="qtext"></h3><div id="opts"></div></div></div>
-<div id="result" class="card"><h2 id="winnerText"></h2><table><thead><tr><th>Игрок</th><th>Правильных</th><th>Время (с)</th></tr></thead><tbody id="stats"></tbody></table></div>
-<script src="/socket.io/socket.io.js"></script><script src="client.js"></script></body></html>
+<div id="result"><h2 id="winnerText"></h2><table><thead><tr><th>Игрок</th><th>Правильных</th><th>Время (с)</th></tr></thead><tbody id="stats"></tbody></table></div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="client.js"></script>
+</body></html>
