@@ -17,20 +17,14 @@ const joinDiv = document.getElementById('join'),
 document.getElementById('joinBtn').onclick = () => {
   const nick = document.getElementById('nick').value.trim();
   if (!nick) return;
-  self = nick;
-  socket.emit('join', nick);
-  joinDiv.style.display = 'none';
-  lobbyDiv.style.display = 'block';
+  self = nick; socket.emit('join', nick);
+  joinDiv.style.display = 'none'; lobbyDiv.style.display = 'block';
 };
 
 socket.on('lobby', list => {
   playersTb.innerHTML = '';
   list.filter(n => n===self).forEach(n => playersTb.innerHTML += `<tr><td><strong>${n}</strong></td></tr>`);
   list.filter(n => n!==self).forEach(n => playersTb.innerHTML += `<tr><td>${n}</td></tr>`);
-});
-
-socket.on('gameStatus', d => {
-  if (!d.open) location = '/closed.html';
 });
 
 socket.on('playerList', list => {
@@ -46,57 +40,33 @@ socket.on('playerList', list => {
     const nick = document.createElement('div');
     nick.className = 'nick';
     nick.innerText = p.nickname;
-    el.append(circle, nick);
-    playersContainer.append(el);
+    el.append(circle, nick); playersContainer.append(el);
     const same = list.filter(x => x.level === p.level);
     const idx = same.findIndex(x => x.nickname === p.nickname);
-    const leftPerc = (idx + 1) / (same.length + 1) * 100;
-    el.style.left = leftPerc + '%';
-    el.style.bottom = 150 + (p.level - 1) * 60 + 'px';
+    el.style.left = `${(idx+1)/(same.length+1)*100}%`;
+    el.style.bottom = `${150+(p.level-1)*60}px`;
   });
 });
 
 socket.on('countdown', n => {
-  if (n > 0) {
-    countdownNum.innerText = n;
-    countdownOverlay.classList.add('show');
-  } else {
-    countdownOverlay.classList.remove('show');
-    lobbyDiv.style.display = 'none';
-    gameDiv.style.display = 'block';
-  }
+  if(n>0){ countdownNum.innerText = n; countdownOverlay.classList.add('show'); }
+  else{ countdownOverlay.classList.remove('show'); lobbyDiv.style.display='none'; gameDiv.style.display='block'; }
 });
 
-socket.on('question', ({question, options}) => {
-  qtext.innerText = question;
-  optsDiv.innerHTML = '';
-  options.forEach((o,i) => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.innerText = o;
-    btn.onclick = () => socket.emit('answer', i);
-    optsDiv.append(btn);
-  });
+socket.on('question', ({question,options}) => {
+  qtext.innerText = question; optsDiv.innerHTML='';
+  options.forEach((o,i)=>{ const btn = document.createElement('button'); btn.className='option-btn'; btn.innerText=o; btn.onclick=()=>socket.emit('answer',i); optsDiv.append(btn); });
   questionModal.classList.add('show');
 });
 
-socket.on('answerResult', ({correct, correctIndex}) => {
+socket.on('answerResult', ({correct,correctIndex}) => {
   const btns = optsDiv.querySelectorAll('button');
-  btns.forEach((b,i) => {
-    if (i === correctIndex) b.classList.add('correct');
-    else if (!correct) b.classList.add('wrong');
-    b.disabled = true;
-  });
-  setTimeout(() => {
-    questionModal.classList.remove('show');
-    // next question appears automatically via server
-  }, 600);
+  btns.forEach((b,i)=>{ if(i===correctIndex) b.classList.add('correct'); else if(!correct) b.classList.add('wrong'); b.disabled=true; });
+  setTimeout(()=>questionModal.classList.remove('show'),600);
 });
 
-socket.on('gameOver', ({winner, stats}) => {
-  gameDiv.style.display = 'none';
-  resultDiv.style.display = 'block';
+socket.on('gameOver', ({winner,stats}) => {
+  gameDiv.style.display='none'; resultDiv.style.display='block';
   winnerText.innerText = `🏅 ${winner.nickname} — правильных: ${winner.correct}, время: ${Math.round(winner.time/1000)}с`;
-  statsTb.innerHTML = '';
-  stats.forEach(p => statsTb.innerHTML += `<tr><td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td></tr>`);
+  statsTb.innerHTML=''; stats.forEach(p=>statsTb.innerHTML+=`<tr><td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td></tr>`);
 });
