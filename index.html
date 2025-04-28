@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Quiz Game</title>
   <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
   <style>
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'Raleway',sans-serif; background:#f5f5f5; overflow:hidden; }
-    #join,#lobby,#game,#result { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
-    #join,#lobby,#result { flex-direction:column; }
-    .card { background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:20px; width:90%; max-width:400px; text-align:center; }
-    input,button { width:100%; padding:12px; margin:8px 0; }
-    button { border:none; border-radius:8px; background:linear-gradient(90deg,#667eea,#764ba2); color:#fff; cursor:pointer; }
-    #lobby .card, #result .card { max-height:80%; overflow:auto; }
-    #game { display:none; position:relative; }
-    #flag { width:35px; position:absolute; top:20px; left:50%; transform:translateX(-50%); }
-    #playersContainer { position:absolute; bottom:20px; left:0; width:100%; height:70%; }
-    .player { position:absolute; display:flex; flex-direction:column; align-items:center; transition:bottom 1s ease,left 1s ease; }
-    .circle { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; }
-    .player.self .circle { width:32px; height:32px; }
-    .nick { margin-top:4px; font-size:12px; }
-    #countdownOverlay { position:absolute; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; visibility:hidden; }
-    #countdownOverlay.show { visibility:visible; }
-    #countdownOverlay h1 { color:#fff; font-size:96px; }
-    #questionModal { position:absolute; bottom:0; left:50%; transform:translateX(-50%) translateY(100%); background:#fff; padding:20px; width:90%; max-width:400px; transition:transform .4s; }
-    #questionModal.show { transform:translateX(-50%) translateY(0); }
-    .option-btn { width:100%; padding:12px; margin:8px 0; border:none; border-radius:8px; background:#667eea; color:#fff; }
-    .correct { background:#93EBA6!important; } .wrong { background:#F99219!important; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Raleway',sans-serif;overflow:hidden;}
+    #join,#lobby,#game,#result{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+    #join,#lobby,#result{flex-direction:column;}
+    .card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:90%;max-width:400px;text-align:center;}
+    input,button{width:100%;padding:12px;margin:8px 0;}
+    button{border:none;border-radius:8px;background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;cursor:pointer;}
+    #lobby .card,#result .card{max-height:80%;overflow:auto;}
+    #game{display:none;position:relative;}
+    #flag{width:35px;position:absolute;top:20px;left:50%;transform:translateX(-50%);}
+    #playersContainer{position:absolute;bottom:20px;left:0;width:100%;height:70%;}
+    .player{position:absolute;display:flex;flex-direction:column;align-items:center;transition:bottom 1s ease,left 1s ease;}
+    .circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+    .player.self .circle{width:32px;height:32px;}
+    .nick{margin-top:4px;font-size:12px;}
+    #countdownOverlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;visibility:hidden;}
+    #countdownOverlay.show{visibility:visible;}
+    #countdownOverlay h1{color:#fff;font-size:96px;}
+    #questionModal{position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);background:#fff;padding:20px;width:90%;max-width:400px;transition:transform .4s;}
+    #questionModal.show{transform:translateX(-50%) translateY(0);}
+    .option-btn{width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;background:#667eea;color:#fff;}
+    .correct{background:#93EBA6!important;} .wrong{background:#F99219!important;}
   </style>
 </head>
 <body>
