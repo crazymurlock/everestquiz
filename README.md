@@ -1,15 +1,14 @@
 # Quiz Game
 
-## Features
-- Questions by order only
-- Admin: Save/Load questions, Open/Close, Start game
-- Adaptive design for mobile
-- Highlight correct (#93EBA6) and wrong (#F99219) answers
-- Smooth animation
-- Flag at top
-- Asynchronous per-player questions
+Questions now stored in `questionbase.json`. Admin panel:
+- Save questions
+- Open/Close game
+- Start game
 
-## Usage
-1. npm install
-2. npm start
-3. Admin: /evergameadmin865
+Run:
+```
+npm install
+npm start
+```
+Admin: `/evergameadmin865`
+Game: `/`

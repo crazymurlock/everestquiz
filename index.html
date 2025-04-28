@@ -1,65 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quiz Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    :root { --primary: #4f46e5; --bg: #f3f4f6; --light: #ffffff; --text: #111827; }
-    * { box-sizing: border-box; }
-    body { margin:0; padding:0; font-family:'Raleway',sans-serif; background:var(--bg); color:var(--text);
-      display:flex; flex-direction:column; align-items:center; min-height:100vh; }
-    .card { background:var(--light); border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1);
-      padding:20px; margin:20px; width:100%; max-width:500px; }
-    #players { position:relative; width:100%; height:300px; background:var(--light); border-radius:12px; overflow:hidden; }
-    .player { position:absolute; display:flex; flex-direction:column; align-items:center; }
-    .circle { width:40px; height:40px; border-radius:50%; background:var(--primary);
-      display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; }
-    .nick { margin-top:4px; font-size:12px; max-width:60px; text-align:center; overflow:hidden; text-overflow:ellipsis; }
-    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);
-      display:flex; align-items:center; justify-content:center; }
-    .hidden { display:none; }
-    .modal-content { background:var(--light); padding:20px; border-radius:12px; text-align:center; }
-    .option-btn { width:100%; padding:12px; margin:10px 0; background:var(--primary); color:#fff; border:none;
-      border-radius:8px; font-size:16px; cursor:pointer; }
-    .option-btn:hover { background:#4338ca; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
-    th { background:#e5e7eb; }
-  </style>
-</head>
-<body>
-  <div id="join" class="card">
-    <h1>Join Quiz</h1>
-    <input id="nick" type="text" placeholder="Nickname" style="width:100%; padding:10px; margin:10px 0;"/>
-    <button id="joinBtn" class="option-btn">Join</button>
-    <p>Scan to join:<br><img id="qr"/></p>
-  </div>
-  <div id="game" class="card hidden">
-    <div id="players"></div>
-  </div>
-  <div id="countdown-modal" class="modal hidden">
-    <div class="modal-content"><h1 id="countdown-number" style="font-size:48px;"></h1></div>
-  </div>
-  <div id="question-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2 id="modal-question"></h2>
-      <div id="modal-options"></div>
-    </div>
-  </div>
-  <div id="results" class="card hidden">
-    <h1>Game Over!</h1>
-    <div style="display:flex; align-items:center; justify-content:center;">
-      <img src="flag.png" style="width:50px; margin-right:10px;"/>
-      <div id="winner" style="font-size:24px; font-weight:600;"></div>
-    </div>
-    <h3>Leaderboard</h3>
-    <table><thead><tr><th>#</th><th>Player</th><th>Score</th><th>Time(s)</th></tr></thead>
-      <tbody id="leaderboard-body"></tbody>
-    </table>
-  </div>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="client.js"></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Quiz Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--primary:#4f46e5;--bg:#f3f4f6;--light:#fff;--text:#111827;}
+*,*:before,*:after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Raleway',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+.card{background:var(--light);border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);padding:20px;margin:10px;width:90%;max-width:500px;}
+.hidden{display:none;}
+#game{position:relative;}
+#players{position:relative;height:300px;}
+.player{position:absolute;display:flex;flex-direction:column;align-items:center;transition:bottom 0.5s;}
+.circle{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;}
+.nick{font-size:10px;width:50px;text-align:center;overflow:hidden;text-overflow:ellipsis;}
+button{padding:10px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:16px;cursor:pointer;}
+button:hover{background:#4338ca;}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
+.modal.hidden{display:none;}
+.modal-content{background:var(--light);padding:20px;border-radius:12px;text-align:center;width:90%;max-width:400px;}
+.option-btn{display:block;width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;font-size:16px;cursor:pointer;}
+.correct{background:#93EBA6 !important;}
+.wrong{background:#F99219 !important;}
+@media(max-width:480px){.circle{width:30px;height:30px;}.nick{font-size:8px;}}
+</style>
+</head><body>
+<div id="join" class="card"><h2>Join Quiz</h2><input id="nick" placeholder="Nickname" style="width:100%;margin:10px 0;padding:10px;"/><button id="joinBtn">Join</button></div>
+<div id="game" class="card hidden"><div id="players"></div></div>
+<div id="question" class="modal hidden"><div class="modal-content"><h3 id="qtext"></h3><div id="opts"></div></div></div>
+<div id="end" class="card hidden"><h2>You reached the top!</h2></div>
+<script src="/socket.io/socket.io.js"></script><script src="client.js"></script>
+</body></html>
