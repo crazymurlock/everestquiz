@@ -13,8 +13,9 @@
   <button id="start">Start Game</button>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    ['open','close','start'].forEach(id=>{
-      document.getElementById(id).onclick = ()=> fetch('/evergameadmin865/'+id,{method:'POST'});
+    ['open','close','start'].forEach(id => {
+      document.getElementById(id).onclick = () =>
+        fetch('/evergameadmin865/' + id, { method: 'POST' });
     });
   </script>
 </body>

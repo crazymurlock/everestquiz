@@ -11,12 +11,16 @@ const io = socketio(server);
 const QUESTION_FILE = path.join(__dirname, 'questionbase.json');
 let questions = [];
 function loadQuestions() {
-  try { questions = JSON.parse(fs.readFileSync(QUESTION_FILE, 'utf-8')); }
-  catch { questions = []; }
+  try {
+    questions = JSON.parse(fs.readFileSync(QUESTION_FILE, 'utf-8'));
+  } catch {
+    questions = [];
+  }
 }
 loadQuestions();
 
-let gameOpen = false, gameStarted = false;
+let gameOpen = false;
+let gameStarted = false;
 const players = {};
 
 function randomColor() {
@@ -30,71 +34,110 @@ app.use(express.static('public'));
 app.get('/evergameadmin865', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
+
 app.post('/evergameadmin865/open', (req, res) => {
-  console.log('Admin: Open');
-  gameOpen = true; io.emit('gameStatus', { open: true }); res.json({});
-});
-app.post('/evergameadmin865/close', (req, res) => {
-  console.log('Admin: Close');
-  gameOpen = false; gameStarted = false; io.emit('gameStatus', { open: false }); res.json({});
-});
-app.post('/evergameadmin865/start', (req, res) => {
-  console.log('Admin: Start');
-  if (!gameOpen) return res.status(400).json({ error: 'Closed' });
-  gameStarted = true;
-  for (let i = 5; i >= 1; i--) setTimeout(() => io.emit('countdown', i), (6 - i) * 1000);
-  setTimeout(() => { io.emit('countdown', 0); sendToAll(); }, 6000);
+  console.log('Admin: Open Game');
+  gameOpen = true;
+  io.emit('gameStatus', { open: true });
   res.json({});
 });
+
+app.post('/evergameadmin865/close', (req, res) => {
+  console.log('Admin: Close Game');
+  gameOpen = false;
+  gameStarted = false;
+  io.emit('gameStatus', { open: false });
+  res.json({});
+});
+
+app.post('/evergameadmin865/start', (req, res) => {
+  console.log('Admin: Start Game');
+  if (!gameOpen) return res.status(400).json({ error: 'Game is closed' });
+  gameStarted = true;
+  for (let i = 5; i >= 1; i--) {
+    setTimeout(() => io.emit('countdown', i), (6 - i) * 1000);
+  }
+  setTimeout(() => {
+    io.emit('countdown', 0);
+    Object.keys(players).forEach(sendQuestion);
+  }, 6000);
+  res.json({});
+});
+
 app.get('/', (req, res) => {
-  if (!gameOpen) return res.sendFile(path.join(__dirname, 'public', 'closed.html'));
+  if (!gameOpen) {
+    return res.sendFile(path.join(__dirname, 'public', 'closed.html'));
+  }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-io.on('connection', socket => {
+io.on('connection', (socket) => {
   socket.emit('gameStatus', { open: gameOpen });
-  socket.on('join', nick => {
+
+  socket.on('join', (nick) => {
     if (!gameOpen || gameStarted) return;
-    players[socket.id] = { nickname: nick, level:1, correct:0, time:0, color:randomColor(), currentQ:null };
-    io.emit('lobby', Object.values(players).map(p=>p.nickname));
-    updateList();
+    players[socket.id] = {
+      nickname: nick,
+      level: 1,
+      correct: 0,
+      time: 0,
+      color: randomColor(),
+      currentQ: null
+    };
+    io.emit('lobby', Object.values(players).map(p => p.nickname));
+    updatePlayerList();
   });
-  socket.on('answer', idx => {
+
+  socket.on('answer', (idx) => {
     const p = players[socket.id];
     if (!p || !gameStarted) return;
-    const q = p.currentQ; const correct = q && idx===q.answerIndex;
-    if (correct) { p.level++; p.correct++; p.time+=Date.now()-q.startTime; }
+    const q = p.currentQ;
+    const correct = q && idx === q.answerIndex;
+    if (correct) {
+      p.level++;
+      p.correct++;
+      p.time += Date.now() - q.startTime;
+    }
     socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
-    updateList();
-    setTimeout(() => { if (p.level>5) endGame(); else sendQuestion(socket.id); }, 1000);
+    updatePlayerList();
+    setTimeout(() => {
+      if (p.level > 5) endGame();
+      else sendQuestion(socket.id);
+    }, 1000);
   });
+
   socket.on('disconnect', () => {
     delete players[socket.id];
-    io.emit('lobby', Object.values(players).map(p=>p.nickname));
-    updateList();
+    io.emit('lobby', Object.values(players).map(p => p.nickname));
+    updatePlayerList();
   });
 });
 
 function sendQuestion(id) {
   loadQuestions();
   const p = players[id];
-  const pool = questions.filter(q=>q.order===p.level);
+  if (!p) return;
+  const pool = questions.filter(q => q.order === p.level);
   if (!pool.length) return;
-  const q = {...pool[Math.floor(Math.random()*pool.length)], startTime:Date.now()};
-  p.currentQ = q; io.to(id).emit('question', { question: q.question, options: q.options });
+  const q = { ...pool[Math.floor(Math.random() * pool.length)], startTime: Date.now() };
+  p.currentQ = q;
+  io.to(id).emit('question', { question: q.question, options: q.options });
 }
 
-function sendToAll() { Object.keys(players).forEach(sendQuestion); }
-
-function updateList() {
-  const list = Object.values(players).map(p=>({ nickname:p.nickname, level:p.level, color:p.color }));
+function updatePlayerList() {
+  const list = Object.values(players).map(p => ({
+    nickname: p.nickname, level: p.level, color: p.color
+  }));
   io.emit('playerList', list);
 }
 
 function endGame() {
-  const stats = Object.values(players).map(p=>({ nickname:p.nickname, correct:p.correct, time:p.time }));
-  stats.sort((a,b)=>b.correct-a.correct||a.time-b.time);
+  const stats = Object.values(players).map(p => ({
+    nickname: p.nickname, correct: p.correct, time: p.time
+  }));
+  stats.sort((a, b) => b.correct - a.correct || a.time - b.time);
   io.emit('gameOver', { winner: stats[0], stats });
 }
 
-server.listen(process.env.PORT||3000, () => console.log('Server listening'));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server listening on ${PORT}`));

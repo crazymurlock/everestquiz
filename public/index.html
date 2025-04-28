@@ -14,11 +14,10 @@
     .card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:90%;max-width:400px;text-align:center;}
     input,button{width:100%;padding:12px;margin:8px 0;}
     button{border:none;border-radius:8px;background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;cursor:pointer;}
-    #lobby .card,#result .card{max-height:80%;overflow:auto;}
     #game{display:none;position:relative;}
     #flag{width:35px;position:absolute;top:20px;left:50%;transform:translateX(-50%);}
     #playersContainer{position:absolute;bottom:20px;left:0;width:100%;height:70%;}
-    .player{position:absolute;display:flex;flex-direction:column;align-items:center;transition:bottom 1s ease,left 1s ease;}
+    .player{position:absolute;display:flex;flex-direction:column;align-items:center;transition:bottom 1s,left 1s;}
     .circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
     .player.self .circle{width:32px;height:32px;}
     .nick{margin-top:4px;font-size:12px;}
@@ -32,31 +31,10 @@
   </style>
 </head>
 <body>
-  <div id="join">
-    <div class="card">
-      <h2>Введите никнейм</h2>
-      <input id="nick" placeholder="Никнейм">
-      <button id="joinBtn">Присоединиться</button>
-    </div>
-  </div>
-  <div id="lobby" style="display:none;">
-    <div class="card">
-      <h2>Лобби</h2>
-      <div id="playersList"></div>
-    </div>
-  </div>
-  <div id="game">
-    <img id="flag" src="flag.png">
-    <div id="playersContainer"></div>
-    <div id="countdownOverlay"><h1 id="countdownNum"></h1></div>
-    <div id="questionModal"><h3 id="qtext"></h3><div id="opts"></div></div>
-  </div>
-  <div id="result" style="display:none;">
-    <div class="card">
-      <h2 id="winnerText"></h2>
-      <table><thead><tr><th>Игрок</th><th>Прав.</th><th>Время (с)</th></tr></thead><tbody id="stats"></tbody></table>
-    </div>
-  </div>
+  <div id="join"><div class="card"><h2>Введите никнейм</h2><input id="nick" placeholder="Никнейм"><button id="joinBtn">Присоединиться</button></div></div>
+  <div id="lobby" style="display:none;"><div class="card"><h2>Лобби</h2><div id="playersList"></div></div></div>
+  <div id="game"><img id="flag" src="flag.png"><div id="playersContainer"></div><div id="countdownOverlay"><h1 id="countdownNum"></h1></div><div id="questionModal"><h3 id="qtext"></h3><div id="opts"></div></div></div>
+  <div id="result" style="display:none;"><div class="card"><h2 id="winnerText"></h2><table><thead><tr><th>Игрок</th><th>Прав.</th><th>Время (с)</th></tr></thead><tbody id="stats"></tbody></table></div></div>
   <script src="client.js"></script>
 </body>
 </html>
