@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Game</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; }
+    #join, #game, #results { display: none; }
+    #players { position: relative; height: 400px; margin: 20px; border: 1px solid #ccc; }
+    .player { position: absolute; width: 40px; height: 40px; border-radius: 20px; background: steelblue;
+               color: #fff; display: flex; align-items: center; justify-content: center; }
+    #question { margin-top: 20px; }
+    .option { display: block; margin: 10px auto; padding: 10px 20px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="join">
+    <h1>Join the Quiz</h1>
+    <input id="nick" placeholder="Enter nickname" />
+    <button id="joinBtn">Join</button>
+    <p>Scan QR code to join:<br/><img id="qr"/></p>
+  </div>
+  <div id="game">
+    <div id="players"></div>
+    <div id="question">
+      <h2 id="qtext"></h2>
+      <div id="options"></div>
+    </div>
+  </div>
+  <div id="results">
+    <h1>Game Over!</h1>
+    <h2 id="winner"></h2>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
