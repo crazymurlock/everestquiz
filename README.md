@@ -1,9 +1,12 @@
 # Quiz Game
 
-## Setup
+## Как запустить
 ```
 npm install
 npm start
 ```
-- Admin: `/evergameadmin865` to open, close, start (questions manual JSON)
-- Game: `/`
+
+- Админка: `/evergameadmin865`
+- Вопросы: `questionbase.json` (25 тестовых на русском)
+- Кнопки: Open Game, Close Game, Start Game (обратный отсчёт)
+- Игра: `/`

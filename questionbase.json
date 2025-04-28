@@ -11,46 +11,266 @@
     "answerIndex": 1
   },
   {
-    "order": 2,
-    "question": "Capital of France?",
+    "order": 1,
+    "question": "Какой цвет неба в ясную погоду?",
     "options": [
-      "Berlin",
-      "Madrid",
-      "Paris",
-      "Rome"
+      "Зелёный",
+      "Синий",
+      "Красный",
+      "Жёлтый"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 1,
+    "question": "Сколько пальцев на руке?",
+    "options": [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 1,
+    "question": "Что растёт на яблоне?",
+    "options": [
+      "Груши",
+      "Яблоки",
+      "Вишни",
+      "Персики"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 1,
+    "question": "Какой звук издаёт корова?",
+    "options": [
+      "Мяу",
+      "Гав",
+      "Муу",
+      "Кря"
+    ],
+    "answerIndex": 2
+  },
+  {
+    "order": 2,
+    "question": "Как называется столица России?",
+    "options": [
+      "Париж",
+      "Москва",
+      "Лондон",
+      "Берлин"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 2,
+    "question": "Сколько метров в километре?",
+    "options": [
+      "100",
+      "1000",
+      "10000",
+      "100000"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 2,
+    "question": "Сколько дней в феврале в невисокосном году?",
+    "options": [
+      "28",
+      "29",
+      "30",
+      "31"
+    ],
+    "answerIndex": 0
+  },
+  {
+    "order": 2,
+    "question": "Сколько часов в сутках?",
+    "options": [
+      "12",
+      "24",
+      "48",
+      "36"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 2,
+    "question": "Какой газ необходим для дыхания человеку?",
+    "options": [
+      "Кислород",
+      "Азот",
+      "Углекислый газ",
+      "Водород"
+    ],
+    "answerIndex": 0
+  },
+  {
+    "order": 3,
+    "question": "Сколько континентов на Земле?",
+    "options": [
+      "5",
+      "6",
+      "7",
+      "8"
     ],
     "answerIndex": 2
   },
   {
     "order": 3,
-    "question": "Color of the sky?",
+    "question": "Какая планета ближе всего к Солнцу?",
     "options": [
-      "Green",
-      "Blue",
-      "Red",
-      "Yellow"
+      "Венера",
+      "Марс",
+      "Меркурий",
+      "Юпитер"
+    ],
+    "answerIndex": 2
+  },
+  {
+    "order": 3,
+    "question": "Сколько месяцев в году?",
+    "options": [
+      "10",
+      "11",
+      "12",
+      "13"
+    ],
+    "answerIndex": 2
+  },
+  {
+    "order": 3,
+    "question": "Какой цвет светофора означает «стоп»?",
+    "options": [
+      "Зелёный",
+      "Жёлтый",
+      "Красный",
+      "Синий"
+    ],
+    "answerIndex": 2
+  },
+  {
+    "order": 3,
+    "question": "Сколько океанов на планете?",
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
     ],
     "answerIndex": 1
   },
   {
     "order": 4,
-    "question": "Water freezes at 0\u00b0C?",
+    "question": "Сколько зубцов у вилки?",
     "options": [
-      "Yes",
-      "No",
-      "Sometimes",
-      "Never"
+      "3",
+      "4",
+      "5",
+      "6"
     ],
-    "answerIndex": 0
+    "answerIndex": 1
+  },
+  {
+    "order": 4,
+    "question": "Сколько игральных костей в игре «Кости»?",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 4,
+    "question": "Сколько минут в часе?",
+    "options": [
+      "30",
+      "45",
+      "60",
+      "90"
+    ],
+    "answerIndex": 2
+  },
+  {
+    "order": 4,
+    "question": "Сколько сторон у квадрата?",
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 4,
+    "question": "Сколько колёс у стандартного автомобиля?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "6"
+    ],
+    "answerIndex": 2
   },
   {
     "order": 5,
-    "question": "Sun rises in the East?",
+    "question": "Сколько планет в Солнечной системе?",
     "options": [
-      "True",
-      "False",
-      "Sometimes",
-      "Never"
+      "7",
+      "8",
+      "9",
+      "10"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 5,
+    "question": "Сколько дней в феврале високосного года?",
+    "options": [
+      "28",
+      "29",
+      "30",
+      "31"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 5,
+    "question": "Сколько ушей у человека?",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 5,
+    "question": "Сколько букв в русском алфавите?",
+    "options": [
+      "30",
+      "31",
+      "32",
+      "33"
+    ],
+    "answerIndex": 1
+  },
+  {
+    "order": 5,
+    "question": "Сколько километров в миле?",
+    "options": [
+      "1.6",
+      "1.8",
+      "2.0",
+      "2.2"
     ],
     "answerIndex": 0
   }

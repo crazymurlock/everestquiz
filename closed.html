@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Closed</title></head>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Закрыто</title></head>
 <body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
-  <h1>Game is closed</h1>
+  <h1>Игра не доступна</h1>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const s = io();
-    s.on('gameStatus', ({open}) => { if(open) window.location = '/'; });
+    const socket = io();
+    socket.on('gameStatus', ({open}) => { if(open) location = '/'; });
   </script>
 </body></html>

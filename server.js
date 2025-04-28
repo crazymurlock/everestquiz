@@ -12,9 +12,13 @@ let gameStarted = false;
 const players = {};
 
 function loadQuestions() {
-  try { questions = JSON.parse(fs.readFileSync(QUESTION_FILE)); }
-  catch { questions = []; }
+  try {
+    questions = JSON.parse(fs.readFileSync(QUESTION_FILE, 'utf-8'));
+  } catch {
+    questions = [];
+  }
 }
+
 loadQuestions();
 
 const app = express();
@@ -24,13 +28,9 @@ const io = socketIO(server);
 app.use(express.json());
 app.use(express.static('public'));
 
-// Admin panel
+// Admin routes
 app.get('/evergameadmin865', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-app.get('/evergameadmin865/questions', (req, res) => {
-  loadQuestions();
-  res.json(questions);
 });
 app.post('/evergameadmin865/open', (req, res) => {
   gameOpen = true;
@@ -46,14 +46,13 @@ app.post('/evergameadmin865/close', (req, res) => {
 app.post('/evergameadmin865/start', (req, res) => {
   if (!gameOpen) return res.status(400).json({ error: 'Game closed' });
   gameStarted = true;
-  // countdown
+  // Countdown 5..1
   for (let i = 5; i >= 1; i--) {
     setTimeout(() => io.emit('countdown', i), (6 - i) * 1000);
   }
-  // after countdown, send first questions
   setTimeout(() => {
     io.emit('countdown', 0);
-    // send first question to all players
+    // send first questions
     Object.keys(players).forEach(id => sendQuestion(id));
   }, 6000);
   res.json({ success: true });
@@ -69,27 +68,36 @@ io.on('connection', socket => {
   socket.on('join', nick => {
     if (!gameOpen) return;
     players[socket.id] = { nickname: nick, level: 1 };
-    io.emit('playerList', Object.values(players).map(p => ({ nickname: p.nickname, level: p.level })));
+    io.emit('playerList', Object.values(players).map(p => ({
+      nickname: p.nickname,
+      level: p.level
+    })));
   });
+
   socket.on('answer', idx => {
     const p = players[socket.id];
     if (!p || !gameStarted) return;
     loadQuestions();
     const pool = questions.filter(q => q.order === p.level);
     const q = p.currentQ;
-    let correct = false;
-    if (q && idx === q.answerIndex) {
-      correct = true;
+    const correct = q && idx === q.answerIndex;
+    socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
+    if (correct) {
       p.level++;
     }
-    socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
-    io.emit('playerList', Object.values(players).map(p => ({ nickname: p.nickname, level: p.level })));
-    // send next question
+    io.emit('playerList', Object.values(players).map(p => ({
+      nickname: p.nickname,
+      level: p.level
+    })));
     setTimeout(() => sendQuestion(socket.id), 1000);
   });
+
   socket.on('disconnect', () => {
     delete players[socket.id];
-    io.emit('playerList', Object.values(players).map(p => ({ nickname: p.nickname, level: p.level })));
+    io.emit('playerList', Object.values(players).map(p => ({
+      nickname: p.nickname,
+      level: p.level
+    })));
   });
 });
 
@@ -98,11 +106,11 @@ function sendQuestion(id) {
   if (!p) return;
   loadQuestions();
   const pool = questions.filter(q => q.order === p.level);
-  if (!pool.length) {
-    io.to(id).emit('won');
+  if (pool.length === 0) {
+    io.to(id).emit('won', { nickname: p.nickname });
     return;
   }
-  const q = Object.assign({}, pool[Math.floor(Math.random() * pool.length)]);
+  const q = { ...pool[Math.floor(Math.random() * pool.length)] };
   p.currentQ = q;
   io.to(id).emit('question', { question: q.question, options: q.options });
 }
