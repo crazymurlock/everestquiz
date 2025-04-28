@@ -24,9 +24,7 @@ document.getElementById('joinBtn').onclick = () => {
   lobbyDiv.style.display = 'block';
 };
 
-socket.on('gameStatus', d => {
-  // handled by server GET route
-});
+socket.on('gameStatus', () => { /* handled by route */ });
 
 socket.on('lobby', list => {
   playersTb.innerHTML = '';
@@ -46,8 +44,11 @@ socket.on('playerList', list => {
       let entry = circleEls[p.nickname];
       if (!entry) {
         const el = document.createElement('div'); el.className = 'player';
-        const circle = document.createElement('div'); circle.className = 'circle'; circle.innerText = p.nickname.charAt(0).toUpperCase(); circle.style.background = p.color;
-        const nickEl = document.createElement('div'); nickEl.className = 'nick'; nickEl.innerText = p.nickname;
+        const circle = document.createElement('div'); circle.className = 'circle';
+        circle.innerText = p.nickname.charAt(0).toUpperCase();
+        circle.style.background = p.color;
+        const nickEl = document.createElement('div'); nickEl.className = 'nick';
+        nickEl.innerText = p.nickname;
         el.append(circle, nickEl);
         playersContainer.append(el);
         entry = { el, circle, nickEl };
