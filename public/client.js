@@ -1,3 +1,8 @@
+// Initial UI state
+document.getElementById('join').style.display = 'none';
+document.getElementById('lobby').style.display = 'none';
+document.getElementById('game').style.display = 'none';
+document.getElementById('result').style.display = 'none';
 const socket = io();
 let self = '';
 const joinDiv = document.getElementById('join'),
