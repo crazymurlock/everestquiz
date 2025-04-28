@@ -1,6 +1,6 @@
-# Trendy Quiz Game
+# Quiz Game
 
-## Usage
+## Run
 ```
 npm install
 npm start
