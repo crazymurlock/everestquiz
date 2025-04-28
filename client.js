@@ -24,30 +24,29 @@ document.getElementById('joinBtn').onclick = () => {
   lobbyDiv.style.display = 'block';
 };
 
-socket.on('gameStatus', () => { /* handled by route */ });
-
 socket.on('lobby', list => {
   playersTb.innerHTML = '';
-  list.filter(n => n === self).forEach(n => playersTb.innerHTML += `<tr><td><strong>${n}</strong></td></tr>`);
-  list.filter(n => n !== self).forEach(n => playersTb.innerHTML += `<tr><td>${n}</td></tr>`);
+  list.forEach(n => {
+    playersTb.innerHTML += `<tr><td>${n === self ? `<strong>${n}</strong>` : n}</td></tr>`;
+  });
 });
 
 socket.on('playerList', list => {
   playersContainer.innerHTML = '';
   const levels = {};
-  list.forEach(p => {
-    levels[p.level] = levels[p.level] || [];
-    levels[p.level].push(p);
-  });
+  list.forEach(p => { levels[p.level] = levels[p.level]||[]; levels[p.level].push(p); });
   Object.values(levels).forEach(group => {
     group.forEach((p, idx) => {
       let entry = circleEls[p.nickname];
       if (!entry) {
-        const el = document.createElement('div'); el.className = 'player';
-        const circle = document.createElement('div'); circle.className = 'circle';
+        const el = document.createElement('div');
+        el.className = 'player';
+        const circle = document.createElement('div');
+        circle.className = 'circle';
         circle.innerText = p.nickname.charAt(0).toUpperCase();
         circle.style.background = p.color;
-        const nickEl = document.createElement('div'); nickEl.className = 'nick';
+        const nickEl = document.createElement('div');
+        nickEl.className = 'nick';
         nickEl.innerText = p.nickname;
         el.append(circle, nickEl);
         playersContainer.append(el);
@@ -55,9 +54,9 @@ socket.on('playerList', list => {
         circleEls[p.nickname] = entry;
       }
       entry.el.classList.toggle('self', p.nickname === self);
-      const leftPerc = (idx + 1) / (group.length + 1) * 100;
+      const leftPerc = (idx+1)/(group.length+1)*100;
       entry.el.style.left = leftPerc + '%';
-      entry.el.style.bottom = (baseBottom + (p.level - 1) * dy) + 'px';
+      entry.el.style.bottom = (baseBottom + (p.level-1)*dy) + 'px';
     });
   });
 });
@@ -77,7 +76,9 @@ socket.on('question', ({ question, options }) => {
   qtext.innerText = question;
   optsDiv.innerHTML = '';
   options.forEach((o, i) => {
-    const btn = document.createElement('button'); btn.className = 'option-btn'; btn.innerText = o;
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerText = o;
     btn.onclick = () => socket.emit('answer', i);
     optsDiv.append(btn);
   });
@@ -86,7 +87,7 @@ socket.on('question', ({ question, options }) => {
 
 socket.on('answerResult', ({ correct, correctIndex }) => {
   const btns = optsDiv.querySelectorAll('button');
-  btns.forEach((b, i) => {
+  btns.forEach((b,i) => {
     if (i === correctIndex) b.classList.add('correct');
     else if (!correct) b.classList.add('wrong');
     b.disabled = true;
@@ -99,5 +100,7 @@ socket.on('gameOver', ({ winner, stats }) => {
   resultDiv.style.display = 'block';
   winnerText.innerText = `🏅 ${winner.nickname} — правильных: ${winner.correct}, время: ${Math.round(winner.time/1000)}с`;
   statsTb.innerHTML = '';
-  stats.forEach(p => statsTb.innerHTML += `<tr><td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td></tr>`);
+  stats.forEach(p => {
+    statsTb.innerHTML += `<tr><td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td></tr>`;
+  });
 });
