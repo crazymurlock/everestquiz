@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin Panel</title>
+<title>Админка</title>
 <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet">
-<style>body{font-family:'Raleway',sans-serif;background:#eef2f5;padding:20px;} .btn{width:100%;padding:12px;margin:10px 0;border:none;border-radius:6px;background:#4f46e5;color:#fff;font-size:16px;cursor:pointer;}</style>
+<style>body{font-family:'Raleway',sans-serif;padding:20px;background:#f0f0f0}button{width:100%;padding:12px;margin:8px 0;border:none;border-radius:6px;background:#4f46e5;color:#fff;cursor:pointer;font-size:16px}</style>
 </head>
 <body>
-<button class="btn" onclick="fetch('/evergameadmin865/open',{method:'POST'})">Open Game</button>
-<button class="btn" onclick="fetch('/evergameadmin865/close',{method:'POST'})">Close Game</button>
-<button class="btn" onclick="fetch('/evergameadmin865/start',{method:'POST'})">Start Game</button>
-<script src="/socket.io/socket.io.js"></script>
-<script>const sock=io();sock.on('gameStatus',d=>{console.log('admin sees',d);});</script>
+<button onclick="fetch('/evergameadmin865/open',{method:'POST'});">Open Game</button>
+<button onclick="fetch('/evergameadmin865/close',{method:'POST'});">Close Game</button>
+<button onclick="fetch('/evergameadmin865/start',{method:'POST'});">Start Game</button>
 </body>
 </html>
