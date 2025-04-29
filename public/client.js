@@ -25,11 +25,16 @@ function animateCircle(el, level) {
   const flagRect = document.getElementById('flag').getBoundingClientRect();
   const startY = qRect.top - el.offsetHeight - 1;
   const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  const ratio = (level - 1) / (maxLevel - 1);
-  const targetY = startY + (endY - startY) * ratio;
-  el.style.transition = 'top 1s ease';
+  // compute slots
+  const step = (startY - endY) / (maxLevel - 1);
+  // slot index: start at level 2 baseline
+  const slot = Math.min(level + 1, maxLevel);
+  const targetY = startY - step * (slot - 1);
+  const duration = slot === maxLevel ? 2 : 1;
+  el.style.transition = 'top ' + duration + 's ease';
   el.style.top = Math.round(targetY) + 'px';
 }
+
 
 // gameStatus listener
 socket.on('gameStatus', data => {
@@ -100,24 +105,33 @@ socket.on('answerResult', res => {
 // playerList handler with animateCircle
 socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
-  playersContainer.innerHTML = '';
-  // create circles
+  // Rectangles
+  const qRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const startY = qRect.top - 12 - 1;
+  const endY = flagRect.top + flagRect.height/2 - 12;
+  const step = (startY - endY) / (maxLevel - 1);
+  // Create or update circles
   list.forEach(p => {
-    const el = document.createElement('div');
-    el.className = 'circle' + (p.nickname === self ? ' self' : '');
-    el.textContent = p.nickname.charAt(0).toUpperCase();
-    el.style.background = p.color;
-    el.style.position = 'absolute';
-    // initial top at startY for smooth transition
-    const tempRect = document.getElementById('question').getBoundingClientRect();
-    el.style.top = (tempRect.top - el.offsetHeight - 1) + 'px';
-    // horizontal align under track
-    const trackRect = track.getBoundingClientRect();
-    el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
-    playersContainer.append(el);
-    circles[p.nickname] = el;
+    let el = circles[p.nickname];
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'circle' + (p.nickname === self ? ' self' : '');
+      el.textContent = p.nickname.charAt(0).toUpperCase();
+      el.style.background = p.color;
+      el.style.position = 'absolute';
+      // initial position at level2
+      const initY = startY - step * 1;
+      el.style.top = Math.round(initY) + 'px';
+      const trackRect = track.getBoundingClientRect();
+      el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
+      playersContainer.append(el);
+      circles[p.nickname] = el;
+    }
+    // Animate to new slot
+    animateCircle(el, p.level);
   });
-  // animate to level positions
+});// animate to level positions
   list.forEach(p => {
     const el = circles[p.nickname];
     animateCircle(el, p.level);
@@ -126,14 +140,19 @@ socket.on('playerList', list => {
 
 // game over handler
 socket.on('gameOver', data => {
-  gameDiv.classList.remove('visible');
-  resultDiv.classList.add('visible');
-  winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
-  statsTb.innerHTML = '';
-  data.stats.forEach(p => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
-    statsTb.append(tr);
-  });
+  // delay until animation completes (2s) + 1s pause
+  setTimeout(() => {
+    gameDiv.classList.remove('visible');
+    resultDiv.classList.add('visible');
+    winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
+    statsTb.innerHTML = '';
+    data.stats.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+      statsTb.append(tr);
+    });
+    confetti();
+  }, 3000);
+});
   confetti();
 });
