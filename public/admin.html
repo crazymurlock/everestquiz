@@ -14,13 +14,17 @@ button:hover{background:#4338ca;}
 <body>
 <div class="container">
 <h2>Админ панель</h2>
-<button id="open">Open Game</button>
-<button id="close">Close Game</button>
-<button id="start">Start Game</button>
+<button id="btnOpen">Open Game</button>
+<button id="btnClose">Close Game</button>
+<button id="btnStart">Start Game</button>
 </div>
 <script src="/socket.io/socket.io.js"></script>
+
 <script>
-['open','close','start'].forEach(id=>document.getElementById(id).onclick=()=>fetch('/evergameadmin865/'+id,{method:'POST'}));
+document.getElementById('btnOpen').onclick = ()=> fetch('/evergameadmin865/open', {method:'POST'});
+document.getElementById('btnClose').onclick = ()=> fetch('/evergameadmin865/close', {method:'POST'});
+document.getElementById('btnStart').onclick = ()=> fetch('/evergameadmin865/start', {method:'POST'});
 </script>
+
 </body>
 </html>
