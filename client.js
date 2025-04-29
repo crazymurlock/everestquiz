@@ -9,124 +9,130 @@ const joinDiv = document.getElementById('join'),
       lobbyPl  = document.getElementById('lobbyPlayers'),
       track    = document.getElementById('track'),
       flag     = document.getElementById('flag'),
-      cont     = document.getElementById('playersContainer'),
+      playersContainer = document.getElementById('playersContainer'),
       joinBtn  = document.getElementById('joinBtn'),
       nickIn   = document.getElementById('nick'),
       qtext    = document.getElementById('qtext'),
       optsDiv  = document.getElementById('opts'),
       winnerH  = document.getElementById('winnerText'),
       statsTb  = document.getElementById('resStats');
-const circles = {}, maxLevel=5;
 
-// Redirect if closed
-socket.on('gameStatus',data=>{
-  if(!data.open) location='/closed.html';
+const circles = {}, maxLevel = 5;
+
+// animateCircle function
+function animateCircle(el, level) {
+  const qRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const startY = qRect.top - el.offsetHeight - 1;
+  const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+  const ratio = (level - 1) / (maxLevel - 1);
+  const targetY = startY + (endY - startY) * ratio;
+  el.style.transition = 'top 1s ease';
+  el.style.top = Math.round(targetY) + 'px';
+}
+
+// gameStatus listener
+socket.on('gameStatus', data => {
+  if (!data.open) {
+    location = '/closed.html';
+  }
 });
 
-// Join
-joinBtn.onclick = ()=>{
-  const n = nickIn.value.trim();
-  if(!n) return;
-  self = n; socket.emit('join', n);
+// join button handler
+joinBtn.onclick = () => {
+  const nick = nickIn.value.trim();
+  if (!nick) return;
+  self = nick;
+  socket.emit('join', nick);
   joinDiv.classList.remove('visible');
   lobbyDiv.classList.add('visible');
 };
 
-// Lobby list
-socket.on('lobby', list=>{
-  lobbyPl.innerHTML='';
-  list.forEach(n=>{const d=document.createElement('div'); d.textContent=n; lobbyPl.append(d);});
+// lobby list update
+socket.on('lobby', list => {
+  lobbyPl.innerHTML = '';
+  list.forEach(nick => {
+    const d = document.createElement('div');
+    d.textContent = nick;
+    lobbyPl.append(d);
+  });
 });
 
-// Countdown
-socket.on('countdown', n=>{
-  if(n>0){ cntNum.textContent=n; cntOv.classList.add('show'); }
-  else {
+// countdown handler
+socket.on('countdown', n => {
+  if (n > 0) {
+    cntNum.textContent = n;
+    cntOv.classList.add('show');
+  } else {
     cntOv.classList.remove('show');
     lobbyDiv.classList.remove('visible');
     gameDiv.classList.add('visible');
     track.style.display = 'block';
-    flag.style.display = 'block';
+    flag.style.display  = 'block';
     playersContainer.style.display = 'block';
     document.getElementById('question').style.display = 'block';
-    track.style.display = 'block';
-    flag.style.display  = 'block';
-    cont.style.display  = 'block';
-    document.getElementById('question').style.display='block';
   }
 });
 
-// Question
-socket.on('question', q=>{
+// show question
+socket.on('question', q => {
   qtext.textContent = q.question;
-  optsDiv.innerHTML='';
-  q.options.forEach((o,i)=>{const b=document.createElement('button');b.className='option-btn';b.textContent=o; b.onclick=()=>socket.emit('answer',i); optsDiv.append(b);});
-});
-
-// Answer result
-socket.on('answerResult', res=>{
-  Array.from(optsDiv.children).forEach((b,i)=>{
-    if(i===res.correctIndex) b.classList.add('correct');
-    else if(!res.correct)    b.classList.add('wrong');
-    b.disabled=true;
+  optsDiv.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'option-btn';
+    b.textContent = opt;
+    b.onclick = () => socket.emit('answer', i);
+    optsDiv.append(b);
   });
-  setTimeout(()=>optsDiv.innerHTML='',800);
 });
 
-// PlayerList => circles after game start
+// answer result
+socket.on('answerResult', res => {
+  Array.from(optsDiv.children).forEach((b, i) => {
+    if (i === res.correctIndex) b.classList.add('correct');
+    else if (!res.correct) b.classList.add('wrong');
+    b.disabled = true;
+  });
+  setTimeout(() => optsDiv.innerHTML = '', 800);
+});
 
-// Updated circle positioning: fixed vertical slots for levels 1-5
+// playerList handler with animateCircle
 socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
-  // Clear container
   playersContainer.innerHTML = '';
-  // Get track bounds
-  const trackRect = track.getBoundingClientRect();
-  // Define Y slots (in px) for levels 1-5
-  const slots = [];
-  for (let i = 1; i <= maxLevel; i++) {
-    // level 1 at bottom near question; level max at top near flag
-    const ratio = (i - 1) / (maxLevel - 1);
-    slots[i] = trackRect.bottom - ratio * trackRect.height - 12; // subtract half circle height
-  }
-  // Group players by level
-  const groups = {};
+  // create circles
   list.forEach(p => {
-    if (!groups[p.level]) groups[p.level] = [];
-    groups[p.level].push(p);
+    const el = document.createElement('div');
+    el.className = 'circle' + (p.nickname === self ? ' self' : '');
+    el.textContent = p.nickname.charAt(0).toUpperCase();
+    el.style.background = p.color;
+    el.style.position = 'absolute';
+    // initial top at startY for smooth transition
+    const tempRect = document.getElementById('question').getBoundingClientRect();
+    el.style.top = (tempRect.top - el.offsetHeight - 1) + 'px';
+    // horizontal align under track
+    const trackRect = track.getBoundingClientRect();
+    el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
+    playersContainer.append(el);
+    circles[p.nickname] = el;
   });
-  // Render circles per level
-  Object.keys(groups).forEach(levelKey => {
-    const lvl = parseInt(levelKey);
-    const playersAtLevel = groups[lvl];
-    const yPos = slots[lvl];
-    // Distribute horizontally
-    const total = playersAtLevel.length;
-    playersAtLevel.forEach((p, idx) => {
-      const el = document.createElement('div');
-      el.className = 'circle' + (p.nickname === self ? ' self' : '');
-      el.textContent = p.nickname.charAt(0).toUpperCase();
-      el.style.background = p.color;
-      // Calculate x position: evenly spaced across track width * 3 (wide zone)
-      const startX = trackRect.left - trackRect.width; // allow spread
-      const endX = trackRect.right + trackRect.width;
-      const x = startX + (idx + 1) / (total + 1) * (endX - startX);
-      el.style.top = yPos + 'px';
-      el.style.left = x + 'px';
-      playersContainer.append(el);
-    });
+  // animate to level positions
+  list.forEach(p => {
+    const el = circles[p.nickname];
+    animateCircle(el, p.level);
   });
 });
 
-// Game over
-socket.on('gameOver', data=>{
+// game over handler
+socket.on('gameOver', data => {
   gameDiv.classList.remove('visible');
   resultDiv.classList.add('visible');
   winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
-  statsTb.innerHTML='';
-  data.stats.forEach(p=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+  statsTb.innerHTML = '';
+  data.stats.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
     statsTb.append(tr);
   });
   confetti();
