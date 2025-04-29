@@ -8,36 +8,31 @@
 <script src="/socket.io/socket.io.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Raleway',sans-serif;overflow:hidden;background:#f5f5f5}
-/* countdown overlay */
+body{font-family:'Raleway',sans-serif;background:#f5f5f5;overflow:hidden}
 #countdownOverlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:10}
 #countdownOverlay.show{display:flex}
 #countdownOverlay h1{color:#fff;font-size:96px;margin:0}
-/* screens */
 #join,#lobby,#game,#result{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
-#lobby,#result{display:none}
-#game{display:none;position:relative;}
-/* cards */
+#lobby,#result,#game{display:none}
 .card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:90%;max-width:400px;text-align:center}
 input,button{width:100%;padding:12px;margin:8px 0}
 button{border:none;border-radius:8px;background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;cursor:pointer}
 #playersList{width:100%;text-align:left}
-/* game elements */
-#flag{width:35px;position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:1}
-#playersContainer{position:absolute;bottom:20px;left:0;width:100%;height:70%;overflow:hidden}
+#gameScreen{position:relative;display:flex;flex-direction:column;align-items:center;width:100%;height:100%}
+#flag{width:35px;margin-top:20px}
+#playersContainer{flex:1;position:relative;width:100%}
 .player{position:absolute;transition:transform 1s ease}
 .circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
 .player.self .circle{width:32px;height:32px}
 .nick{margin-top:4px;font-size:12px}
-/* question modal */
-#questionModal{position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);background:#fff;padding:20px;width:90%;max-width:400px;transition:transform .4s;z-index:5}
-#questionModal.show{transform:translateX(-50%) translateY(0)}
+#questionContainer{position:absolute;bottom:20px;width:90%;max-width:400px;z-index:5}
+#questionContainer.show{display:block}
+#questionContainer{display:none;transition:transform .4s}
+.question-card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
 .option-btn{width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;background:#667eea;color:#fff}
 .correct{background:#93EBA6!important}
 .wrong{background:#F99219!important}
-/* result */
-#result .card{display:flex;flex-direction:column}
-#result table{width:100%;border-collapse:collapse}
+#result table{width:100%;border-collapse:collapse;margin-top:10px}
 #result th,#result td{padding:8px;border:1px solid #ddd;text-align:center}
 </style>
 </head>
@@ -45,8 +40,16 @@ button{border:none;border-radius:8px;background:linear-gradient(90deg,#667eea,#7
 <div id="countdownOverlay"><h1 id="countdownNum"></h1></div>
 <div id="join"><div class="card"><h2>Введите никнейм</h2><input id="nick" placeholder="Никнейм"><button id="joinBtn">Присоединиться</button></div></div>
 <div id="lobby"><div class="card"><h2>Лобби</h2><div id="playersList"></div></div></div>
-<div id="game"><img id="flag" src="flag.png"><div id="playersContainer"></div><div id="questionModal"><h3 id="qtext"></h3><div id="opts"></div></div></div>
+<div id="gameScreen" id="game"><img id="flag" src="flag.png"><div id="playersContainer"></div><div id="questionContainer"></div></div>
 <div id="result"><div class="card"><h2 id="winnerText"></h2><table><thead><tr><th>Игрок</th><th>Прав.</th><th>Время (с)</th></tr></thead><tbody id="stats"></tbody></table></div></div>
+
+<template id="question-template">
+  <div class="question-card">
+    <h3 class="question-text"></h3>
+    <div class="options"></div>
+  </div>
+</template>
+
 <script src="client.js"></script>
 </body>
 </html>
