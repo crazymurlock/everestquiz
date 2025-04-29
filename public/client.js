@@ -19,8 +19,7 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
-// animateCircle: плавный подъём, базовая точка уровень3
-// animateCircle: плавный подъём кружка от вопроса к флагу (база уровень 4)
+// animateCircle: плавный подъём от вопроса к флагу (база уровень 4)
 function animateCircle(el, level) {
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
@@ -29,15 +28,13 @@ function animateCircle(el, level) {
   const fullStep  = (rawEndY - rawStartY) / (maxLevel - 1);
   // базовая точка на уровне 4 => rawStartY + fullStep*3
   const baseY     = rawStartY + fullStep * 3;
-  // шаг между уровнями
   const step      = (rawEndY - baseY) / (maxLevel - 1);
-  // целевая Y: baseY + step*(level-1)
   const targetY   = baseY + step * (level - 1);
-  // длительность анимации: 2s при финале иначе 1s
   const duration  = (level === maxLevel ? 2 : 1) + 's';
   el.style.transition = 'top ' + duration + ' ease';
   el.style.top = Math.round(targetY) + 'px';
 }
+
 
 
 // Отслеживаем статус игры
@@ -127,11 +124,9 @@ socket.on('playerList', list => {
       const flagRect = document.getElementById('flag').getBoundingClientRect();
       const rawStartY = qRect.top - el.offsetHeight - 1;
       const rawEndY   = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-      const fullStep = (rawEndY - rawStartY)/(maxLevel - 1);
-      const initY    = rawStartY + fullStep * 3;
-      el.style.top = Math.round(initY) + 'px';
-      const trackRect = track.getBoundingClientRect();
-      el.style.left   = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
+      const fullStep  = (rawEndY - rawStartY)/(maxLevel - 1);
+      const initY     = rawStartY + fullStep * 3;
+      el.style.top   = Math.round(initY) + 'px';
       playersContainer.append(el);
       circles[p.nickname] = el;
     }
