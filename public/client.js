@@ -19,14 +19,13 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
-// animateCircle function
+// animateCircle function for vertical progression
 function animateCircle(el, level) {
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
   const startY = qRect.top - el.offsetHeight - 1;
   const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
   const step = (startY - endY) / (maxLevel - 1);
-  // start level at 2 baseline
   const slot = Math.min(level + 1, maxLevel);
   const targetY = startY - step * (slot - 1);
   const duration = slot === maxLevel ? 2 : 1;
@@ -34,6 +33,18 @@ function animateCircle(el, level) {
   el.style.top = Math.round(targetY) + 'px';
 }
 
+
+// animateCircle function
+function animateCircle(el, level) {
+  const qRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const startY = qRect.top - el.offsetHeight - 1;
+  const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+  const ratio = (level - 1) / (maxLevel - 1);
+  const targetY = startY + (endY - startY) * ratio;
+  el.style.transition = 'top 1s ease';
+  el.style.top = Math.round(targetY) + 'px';
+}
 
 // gameStatus listener
 socket.on('gameStatus', data => {
@@ -106,9 +117,7 @@ socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
-  const startY = qRect.top - 12 - 1;
-  const endY = flagRect.top + flagRect.height/2 - 12;
-  const step = (startY - endY) / (maxLevel - 1);
+  const startY = qRect.top - el.offsetHeight - 1; // we'll override per element below
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
@@ -117,14 +126,10 @@ socket.on('playerList', list => {
       el.textContent = p.nickname.charAt(0).toUpperCase();
       el.style.background = p.color;
       el.style.position = 'absolute';
-      // initial position at slot2
-      const initY = startY - step * 1;
-      el.style.top = Math.round(initY) + 'px';
-      const trackRect = track.getBoundingClientRect();
-      el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
       playersContainer.append(el);
       circles[p.nickname] = el;
     }
+    // animate based on level
     animateCircle(el, p.level);
   });
 });// animate to level positions
@@ -136,19 +141,14 @@ socket.on('playerList', list => {
 
 // game over handler
 socket.on('gameOver', data => {
-  // wait for final animation (2s) + 1s pause
-  setTimeout(() => {
-    gameDiv.classList.remove('visible');
-    resultDiv.classList.add('visible');
-    winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
-    statsTb.innerHTML = '';
-    data.stats.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
-      statsTb.append(tr);
-    });
-    confetti();
-  }, 3000);
-});
+  gameDiv.classList.remove('visible');
+  resultDiv.classList.add('visible');
+  winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
+  statsTb.innerHTML = '';
+  data.stats.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+    statsTb.append(tr);
+  });
   confetti();
 });
