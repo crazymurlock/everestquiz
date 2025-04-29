@@ -16,108 +16,93 @@ const joinDiv = document.getElementById('join'),
       optsDiv  = document.getElementById('opts'),
       winnerH  = document.getElementById('winnerText'),
       statsTb  = document.getElementById('resStats');
+const circles = {}, maxLevel=5;
 
-const circles={}, maxLevel=5;
-
-// статус игры
+// Redirect if closed
 socket.on('gameStatus',data=>{
   if(!data.open) location='/closed.html';
 });
 
-// join
-joinBtn.onclick = () => {
-  const nick = nickIn.value.trim(); if(!nick) return;
-  self = nick; socket.emit('join',nick);
+// Join
+joinBtn.onclick = ()=>{
+  const n = nickIn.value.trim();
+  if(!n) return;
+  self = n; socket.emit('join', n);
   joinDiv.classList.remove('visible');
   lobbyDiv.classList.add('visible');
 };
 
-// лобби
-socket.on('lobby',list=>{
+// Lobby list
+socket.on('lobby', list=>{
   lobbyPl.innerHTML='';
-  list.forEach(n=>{const d=document.createElement('div');d.textContent=n; lobbyPl.append(d);});
+  list.forEach(n=>{const d=document.createElement('div'); d.textContent=n; lobbyPl.append(d);});
 });
 
-// countdown
-socket.on('countdown',n=>{
-  if(n>0){
-    cntNum.textContent=n; cntOv.classList.add('show');
-  } else {
+// Countdown
+socket.on('countdown', n=>{
+  if(n>0){ cntNum.textContent=n; cntOv.classList.add('show'); }
+  else {
     cntOv.classList.remove('show');
     lobbyDiv.classList.remove('visible');
     gameDiv.classList.add('visible');
     track.style.display = 'block';
-    flag.style.display = 'block';
-    cont.style.display = 'block';
-    document.getElementById('question').style.display = 'block';
+    flag.style.display  = 'block';
+    cont.style.display  = 'block';
+    document.getElementById('question').style.display='block';
   }
 });
 
-// question
-socket.on('question',q=>{
+// Question
+socket.on('question', q=>{
   qtext.textContent = q.question;
-  optsDiv.innerHTML = '';
+  optsDiv.innerHTML='';
   q.options.forEach((o,i)=>{const b=document.createElement('button');b.className='option-btn';b.textContent=o; b.onclick=()=>socket.emit('answer',i); optsDiv.append(b);});
 });
 
-// answer result
-socket.on('answerResult',res=>{
+// Answer result
+socket.on('answerResult', res=>{
   Array.from(optsDiv.children).forEach((b,i)=>{
     if(i===res.correctIndex) b.classList.add('correct');
-    else if(!res.correct)   b.classList.add('wrong');
-    b.disabled = true;
+    else if(!res.correct)    b.classList.add('wrong');
+    b.disabled=true;
   });
   setTimeout(()=>optsDiv.innerHTML='',800);
 });
 
-// playerList circles
-
-socket.on('playerList', list => {
-  if (!gameDiv.classList.contains('visible')) return;
-  // clear old circles
-  playersContainer.innerHTML = '';
-  const questionRect = document.getElementById('question').getBoundingClientRect();
-  const flagRect = document.getElementById('flag').getBoundingClientRect();
-  const startY = questionRect.top - 10; // level 1 position
-  const endY = flagRect.top + flagRect.height/2 - 12; // level 5 (circle radius assumed 12)
-  const step = (startY - endY) / (maxLevel - 1);
-  // create circles
-  list.forEach(p => {
-    const el = document.createElement('div');
-    el.className = 'circle' + (p.nickname === self ? ' self' : '');
+// PlayerList => circles after game start
+socket.on('playerList', list=>{
+  if(!gameDiv.classList.contains('visible')) return;
+  cont.innerHTML='';
+  const rectQ = document.getElementById('question').getBoundingClientRect();
+  const rectF = flag.getBoundingClientRect();
+  const startY = rectQ.top - 10;
+  const endY   = rectF.top + rectF.height/2 - 12;
+  const step   = (startY - endY)/(maxLevel-1);
+  list.forEach(p=>{
+    const el=document.createElement('div');
+    el.className = 'circle' + (p.nickname===self?' self':'');
     el.textContent = p.nickname.charAt(0).toUpperCase();
     el.style.background = p.color;
-    playersContainer.append(el);
-    circles[p.nickname] = el;
+    cont.append(el);
   });
-  // position circles
-  list.forEach(p => {
-    const el = circles[p.nickname];
-    const y = startY - step * (p.level - 1);
+  list.forEach((p,i)=>{
+    const el = cont.children[i];
+    const y = startY - step*(p.level-1);
     el.style.top = y + 'px';
-    // center horizontally
     const trackRect = track.getBoundingClientRect();
     el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
   });
 });
-list.forEach(p=>{
-    const el = cont.querySelector(`[textContent="${p.nickname[0].toUpperCase()}"]`);
-    const step = height/(maxLevel-1);
-    const y = rect.bottom - step*(p.level-1);
-    el.style.top = y + 'px';
-    el.style.left = (rect.left + rect.width/2 - el.offsetWidth/2) + 'px';
-  });
-});
 
-// gameOver
-socket.on('gameOver',data=>{
+// Game over
+socket.on('gameOver', data=>{
   gameDiv.classList.remove('visible');
   resultDiv.classList.add('visible');
   winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
-  statsTb.innerHTML = '';
+  statsTb.innerHTML='';
   data.stats.forEach(p=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+    tr.innerHTML=`<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
     statsTb.append(tr);
   });
   confetti();
