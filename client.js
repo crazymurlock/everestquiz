@@ -98,26 +98,42 @@ socket.on('answerResult', res => {
 });
 
 // playerList handler with animateCircle
+
+// playerList handler with animateCircle and preserving existing circles
 socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
-  playersContainer.innerHTML = '';
-  // create circles
+  // track and question rect
+  const qRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const startY = qRect.top - 12 - 1;
+  const endY = flagRect.top + flagRect.height/2 - 12;
+  const step = (startY - endY) / (maxLevel - 1);
+
+  // For each player
   list.forEach(p => {
-    const el = document.createElement('div');
-    el.className = 'circle' + (p.nickname === self ? ' self' : '');
-    el.textContent = p.nickname.charAt(0).toUpperCase();
-    el.style.background = p.color;
-    el.style.position = 'absolute';
-    // initial top at startY for smooth transition
-    const tempRect = document.getElementById('question').getBoundingClientRect();
-    el.style.top = (tempRect.top - el.offsetHeight - 1) + 'px';
-    // horizontal align under track
-    const trackRect = track.getBoundingClientRect();
-    el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
-    playersContainer.append(el);
-    circles[p.nickname] = el;
+    let el = circles[p.nickname];
+    // If new element, create and set initial pos
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'circle' + (p.nickname === self ? ' self' : '');
+      el.textContent = p.nickname.charAt(0).toUpperCase();
+      el.style.background = p.color;
+      el.style.position = 'absolute';
+      // initial top
+      el.style.top = (startY) + 'px';
+      // horizontal center under track
+      const tRect = track.getBoundingClientRect();
+      el.style.left = (tRect.left + tRect.width/2 - el.offsetWidth/2) + 'px';
+      playersContainer.append(el);
+      circles[p.nickname] = el;
+    }
+    // Animate to new level position
+    const targetY = startY - step * (p.level - 1);
+    el.style.transition = 'top 1s ease';
+    el.style.top = targetY + 'px';
   });
-  // animate to level positions
+});
+// animate to level positions
   list.forEach(p => {
     const el = circles[p.nickname];
     animateCircle(el, p.level);
