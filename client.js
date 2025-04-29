@@ -47,6 +47,11 @@ function animateCircle(el, level) {
 }
 
 // gameStatus listener
+socket.on('gameStatus', data => {
+  if (!data.open) {
+    location = '/closed.html';
+  }
+});
 
 // join button handler
 joinBtn.onclick = () => {
@@ -54,8 +59,8 @@ joinBtn.onclick = () => {
   if (!nick) return;
   self = nick;
   socket.emit('join', nick);
-  joinDiv.classList.remove('visible');
-  lobbyDiv.classList.add('visible');
+  joinDiv.style.display = 'none';
+  lobbyDiv.style.display = 'flex';
 };
 
 // lobby list update
@@ -75,8 +80,8 @@ socket.on('countdown', n => {
     cntOv.classList.add('show');
   } else {
     cntOv.classList.remove('show');
-    lobbyDiv.classList.remove('visible');
-    gameDiv.classList.add('visible');
+    lobbyDiv
+    gameDiv
     track.style.display = 'block';
     flag.style.display  = 'block';
     playersContainer.style.display = 'block';
@@ -139,8 +144,8 @@ socket.on('playerList', list => {
 
 // game over handler
 socket.on('gameOver', data => {
-  gameDiv.classList.remove('visible');
-  resultDiv.classList.add('visible');
+  gameDiv
+  resultDiv
   winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
   statsTb.innerHTML = '';
   data.stats.forEach(p => {
