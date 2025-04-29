@@ -56,7 +56,7 @@ socket.on('playerList', list => {
     levelMap[p.level] = levelMap[p.level] || [];
     levelMap[p.level].push(p);
   });
-  Object.values(levelMap).forEach(group => group.forEach((p,i) => {
+  Object.values(levelMap).forEach(group => group.forEach((p, i) => {
     let entry = circles[p.nickname];
     if (!entry) {
       const el = document.createElement('div');
@@ -81,10 +81,10 @@ socket.on('playerList', list => {
   }));
 });
 
-socket.on('question', ({question, options}) => {
+socket.on('question', ({ question, options }) => {
   qText.textContent = question;
   opts.innerHTML = '';
-  options.forEach((o,i) => {
+  options.forEach((o, i) => {
     const b = document.createElement('button');
     b.className = 'option-btn';
     b.textContent = o;
@@ -94,7 +94,7 @@ socket.on('question', ({question, options}) => {
   qModal.classList.add('show');
 });
 
-socket.on('answerResult', ({correct, correctIndex}) => {
+socket.on('answerResult', ({ correct, correctIndex }) => {
   const btns = opts.querySelectorAll('button');
   btns.forEach((b, i) => {
     if (i === correctIndex) b.classList.add('correct');
@@ -104,8 +104,8 @@ socket.on('answerResult', ({correct, correctIndex}) => {
   setTimeout(() => qModal.classList.remove('show'), 1000);
 });
 
-socket.on('gameOver', ({winner, stats}) => {
-  confetti({ particleCount:200, spread:120 });
+socket.on('gameOver', ({ winner, stats }) => {
+  confetti({ particleCount: 200, spread: 120 });
   gameDiv.style.display = 'none';
   resultDiv.style.display = 'flex';
   wText.textContent = `🏅 ${winner.nickname} — правильных: ${winner.correct}, время: ${Math.round(winner.time/1000)}с`;
