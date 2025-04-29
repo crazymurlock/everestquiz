@@ -47,11 +47,6 @@ function animateCircle(el, level) {
 }
 
 // gameStatus listener
-socket.on('gameStatus', data => {
-  if (!data.open) {
-    location = '/closed.html';
-  }
-});
 
 // join button handler
 joinBtn.onclick = () => {
