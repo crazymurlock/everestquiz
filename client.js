@@ -71,18 +71,36 @@ socket.on('answerResult',res=>{
 });
 
 // playerList circles
-socket.on('playerList',list=>{
-  if(!gameDiv.classList.contains('visible')) return;
-  cont.innerHTML='';
-  const rect = track.getBoundingClientRect(), height = rect.height;
-  list.forEach(p=>{
+
+socket.on('playerList', list => {
+  if (!gameDiv.classList.contains('visible')) return;
+  // clear old circles
+  playersContainer.innerHTML = '';
+  const questionRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const startY = questionRect.top - 10; // level 1 position
+  const endY = flagRect.top + flagRect.height/2 - 12; // level 5 (circle radius assumed 12)
+  const step = (startY - endY) / (maxLevel - 1);
+  // create circles
+  list.forEach(p => {
     const el = document.createElement('div');
-    el.className = 'circle' + (p.nickname===self?' self':'');
-    el.textContent = p.nickname[0].toUpperCase();
+    el.className = 'circle' + (p.nickname === self ? ' self' : '');
+    el.textContent = p.nickname.charAt(0).toUpperCase();
     el.style.background = p.color;
-    cont.append(el);
+    playersContainer.append(el);
+    circles[p.nickname] = el;
   });
-  list.forEach(p=>{
+  // position circles
+  list.forEach(p => {
+    const el = circles[p.nickname];
+    const y = startY - step * (p.level - 1);
+    el.style.top = y + 'px';
+    // center horizontally
+    const trackRect = track.getBoundingClientRect();
+    el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
+  });
+});
+list.forEach(p=>{
     const el = cont.querySelector(`[textContent="${p.nickname[0].toUpperCase()}"]`);
     const step = height/(maxLevel-1);
     const y = rect.bottom - step*(p.level-1);
