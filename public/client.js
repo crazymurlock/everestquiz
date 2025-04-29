@@ -70,27 +70,47 @@ socket.on('answerResult', res=>{
 });
 
 // PlayerList => circles after game start
-socket.on('playerList', list=>{
-  if(!gameDiv.classList.contains('visible')) return;
-  cont.innerHTML='';
-  const rectQ = document.getElementById('question').getBoundingClientRect();
-  const rectF = flag.getBoundingClientRect();
-  const startY = rectQ.top - 10;
-  const endY   = rectF.top + rectF.height/2 - 12;
-  const step   = (startY - endY)/(maxLevel-1);
-  list.forEach(p=>{
-    const el=document.createElement('div');
-    el.className = 'circle' + (p.nickname===self?' self':'');
-    el.textContent = p.nickname.charAt(0).toUpperCase();
-    el.style.background = p.color;
-    cont.append(el);
+
+// Updated circle positioning: fixed vertical slots for levels 1-5
+socket.on('playerList', list => {
+  if (!gameDiv.classList.contains('visible')) return;
+  // Clear container
+  playersContainer.innerHTML = '';
+  // Get track bounds
+  const trackRect = track.getBoundingClientRect();
+  // Define Y slots (in px) for levels 1-5
+  const slots = [];
+  for (let i = 1; i <= maxLevel; i++) {
+    // level 1 at bottom near question; level max at top near flag
+    const ratio = (i - 1) / (maxLevel - 1);
+    slots[i] = trackRect.bottom - ratio * trackRect.height - 12; // subtract half circle height
+  }
+  // Group players by level
+  const groups = {};
+  list.forEach(p => {
+    if (!groups[p.level]) groups[p.level] = [];
+    groups[p.level].push(p);
   });
-  list.forEach((p,i)=>{
-    const el = cont.children[i];
-    const y = startY - step*(p.level-1);
-    el.style.top = y + 'px';
-    const trackRect = track.getBoundingClientRect();
-    el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
+  // Render circles per level
+  Object.keys(groups).forEach(levelKey => {
+    const lvl = parseInt(levelKey);
+    const playersAtLevel = groups[lvl];
+    const yPos = slots[lvl];
+    // Distribute horizontally
+    const total = playersAtLevel.length;
+    playersAtLevel.forEach((p, idx) => {
+      const el = document.createElement('div');
+      el.className = 'circle' + (p.nickname === self ? ' self' : '');
+      el.textContent = p.nickname.charAt(0).toUpperCase();
+      el.style.background = p.color;
+      // Calculate x position: evenly spaced across track width * 3 (wide zone)
+      const startX = trackRect.left - trackRect.width; // allow spread
+      const endX = trackRect.right + trackRect.width;
+      const x = startX + (idx + 1) / (total + 1) * (endX - startX);
+      el.style.top = yPos + 'px';
+      el.style.left = x + 'px';
+      playersContainer.append(el);
+    });
   });
 });
 
