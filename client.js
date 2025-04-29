@@ -15,69 +15,72 @@ const joinDiv=document.getElementById('join'),
       circleTemplate=document.getElementById('circle-template');
 const circles={}, maxLevel=5;
 
-// handle game status
+// Game status: close redirect
 socket.on('gameStatus',data=>{
   if(data.open) joinDiv.style.display='flex';
   else location='/closed.html';
 });
 
-// join
+// Join
 joinBtn.onclick=()=>{const n=document.getElementById('nick').value.trim();if(!n)return;self=n;socket.emit('join',n);};
 
-// lobby
+// Lobby
 socket.on('lobby',list=>{
   joinDiv.style.display='none'; lobbyDiv.style.display='flex'; playersList.innerHTML='';
   list.forEach(n=>{const d=document.createElement('div');d.textContent=n===self?`* ${n}`:n;playersList.append(d);});
 });
 
-// countdown
+// Countdown
 socket.on('countdown',n=>{
   if(n>0){cntNum.textContent=n;countdown.classList.add('show');}
   else{countdown.classList.remove('show'); lobbyDiv.style.display='none'; gameDiv.style.display='flex';
-       // check question bug
-       setTimeout(()=>{ if(!questionContainer.innerHTML) loseOverlay.classList.add('show'); },2000);
+       // check if question missing
+       setTimeout(()=>{ if(questionContainer.innerHTML==='') loseOverlay.classList.add('show'); },2000);
   }
 });
 
-// players list
+// Player circles
 socket.on('playerList',list=>{
-  // clear if needed
+  // remove disconnected
   Object.keys(circles).forEach(k=>{ if(!list.find(p=>p.nickname===k)){ playersContainer.removeChild(circles[k].el); delete circles[k]; } });
-  // compute positions
-  const qh = questionContainer.offsetHeight;
   const cw=playersContainer.clientWidth, ch=playersContainer.clientHeight;
-  const availHeight = ch - qh;
-  const levelMap={};
-  list.forEach(p=>{levelMap[p.level]=levelMap[p.level]||[];levelMap[p.level].push(p);});
-  Object.values(levelMap).forEach(group=>group.forEach((p,i)=>{
-    let entry=circles[p.nickname];
-    if(!entry){
-      const clone=circleTemplate.content.cloneNode(true);
-      const el=clone.querySelector('.circle');
-      const inner=clone.querySelector('.circle-inner');
-      inner.textContent=p.nickname.charAt(0).toUpperCase();
-      inner.style.background=p.color;
+  const qh = questionContainer.offsetHeight;
+  const avail = ch - qh;
+  const offsetBase = qh + 2; // 2px above question
+  list.forEach((p,i)=>{
+    let ent = circles[p.nickname];
+    if(!ent){
+      const c = circleTemplate.content.cloneNode(true);
+      const el = c.querySelector('.circle');
+      const inner = c.querySelector('.circle-inner');
+      inner.textContent = p.nickname.charAt(0).toUpperCase();
+      inner.style.background = p.color;
       playersContainer.append(el);
-      entry={el,inner};
-      circles[p.nickname]=entry;
+      ent = {el, inner};
+      circles[p.nickname] = ent;
     }
-    entry.el.classList.toggle('self',p.nickname===self);
-    const leftFrac=(i+1)/(group.length+1);
-    const x=cw*leftFrac - entry.el.offsetWidth/2;
-    const y=availHeight*(p.level/maxLevel);
-    entry.el.style.transform=`translate3d(${x}px, -${y}px, 0)`;
-  }));
+    ent.el.classList.toggle('self', p.nickname===self);
+    const group = list.filter(x=>x.level===p.level);
+    const idx = group.findIndex(x=>x.nickname===p.nickname);
+    const leftFrac = (idx+1)/(group.length+1);
+    const x = cw*leftFrac - ent.el.offsetWidth/2;
+    // y-position based on level
+    let y;
+    if(p.level<=1) y = offsetBase;
+    else y = offsetBase + avail*((p.level-1)/(maxLevel-1));
+    ent.el.style.transform = `translate3d(${x}px, -${y}px, 0)`;
+  });
 });
 
-// question display
+// Show question
 socket.on('question',q=>{
   loseOverlay.classList.remove('show');
   questionContainer.innerHTML='';
-  const clone=qTemplate.content.cloneNode(true);
-  clone.querySelector('.question-text').textContent=q.question;
-  const opts=clone.querySelector('.options');
+  const clone = qTemplate.content.cloneNode(true);
+  clone.querySelector('.question-text').textContent = q.question;
+  const opts = clone.querySelector('.options');
   q.options.forEach((opt,i)=>{
-    const btn=document.createElement('button');
+    const btn = document.createElement('button');
     btn.className='option-btn'; btn.textContent=opt; btn.onclick=()=>socket.emit('answer',i);
     opts.append(btn);
   });
@@ -86,22 +89,29 @@ socket.on('question',q=>{
   questionContainer.classList.add('visible');
 });
 
-// answer result
+// Answer result
 socket.on('answerResult',res=>{
-  const btns=questionContainer.querySelectorAll('button');
-  btns.forEach((b,i)=>{ if(i===res.correctIndex) b.classList.add('correct'); else if(!res.correct) b.classList.add('wrong'); b.disabled=true; });
+  const btns = questionContainer.querySelectorAll('button');
+  btns.forEach((b,i)=>{
+    if(i===res.correctIndex) b.classList.add('correct');
+    else if(!res.correct) b.classList.add('wrong');
+    b.disabled=true;
+  });
   setTimeout(()=>{
     questionContainer.classList.remove('visible');
     questionContainer.classList.add('hidden');
   },800);
 });
 
-// game over
+// Game over
 socket.on('gameOver',d=>{
   confetti({particleCount:200,spread:120});
   gameDiv.style.display='none'; resultDiv.style.display='flex';
-  document.getElementById('winnerText').textContent=`🏅 ${d.winner.nickname} — правильных:${d.winner.correct}, время:${Math.round(d.winner.time/1000)}с`;
-  const tb=document.getElementById('stats');
-  tb.innerHTML='';
-  d.stats.forEach(p=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;tb.append(tr);});
+  document.getElementById('winnerText').textContent = `🏅 ${d.winner.nickname} — правильных:${d.winner.correct}, время:${Math.round(d.winner.time/1000)}с`;
+  const tb = document.getElementById('stats'); tb.innerHTML='';
+  d.stats.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+    tb.append(tr);
+  });
 });
