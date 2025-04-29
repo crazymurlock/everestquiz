@@ -19,17 +19,18 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
-// animateCircle function for vertical progression
+// animateCircle: smoothly move circle from question to flag based on level
 function animateCircle(el, level) {
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
   const startY = qRect.top - el.offsetHeight - 1;
-  const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+  const endY = flagRect.top + (flagRect.height / 2) - (el.offsetHeight / 2);
   const step = (startY - endY) / (maxLevel - 1);
+  // start at level2 baseline, final level1->slot2,...level5->slot6 capped
   const slot = Math.min(level + 1, maxLevel);
   const targetY = startY - step * (slot - 1);
-  const duration = slot === maxLevel ? 2 : 1;
-  el.style.transition = 'top ' + duration + 's ease';
+  const duration = (slot === maxLevel ? 2 : 1) + 's';
+  el.style.transition = 'top ' + duration + ' ease';
   el.style.top = Math.round(targetY) + 'px';
 }
 
@@ -117,7 +118,7 @@ socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
-  const startY = qRect.top - el.offsetHeight - 1; // we'll override per element below
+  const startY = qRect.top - 13; // 1px above question
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
@@ -126,10 +127,13 @@ socket.on('playerList', list => {
       el.textContent = p.nickname.charAt(0).toUpperCase();
       el.style.background = p.color;
       el.style.position = 'absolute';
+      // initial at level2
+      el.style.top = startY - ((startY - (flagRect.top + flagRect.height/2 - el.offsetHeight/2)) / (maxLevel-1)) * 1 + 'px';
+      const trackRect = track.getBoundingClientRect();
+      el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
       playersContainer.append(el);
       circles[p.nickname] = el;
     }
-    // animate based on level
     animateCircle(el, p.level);
   });
 });// animate to level positions
