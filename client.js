@@ -20,16 +20,26 @@ const joinDiv = document.getElementById('join'),
 const circles = {}, maxLevel = 5;
 
 // animateCircle function
+// animateCircle: smoothly move circle from question to flag based on level
 function animateCircle(el, level) {
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
-  const startY = qRect.top - el.offsetHeight - 1;
-  const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  const ratio = (level - 1) / (maxLevel - 1);
-  const targetY = startY + (endY - startY) * ratio;
-  el.style.transition = 'top 1s ease';
+  const rawStartY = qRect.top - el.offsetHeight - 1;
+  const rawEndY = flagRect.top + flagRect.height / 2 - el.offsetHeight / 2;
+  // full step between rawStart and rawEnd
+  const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
+  // base = start position for level1 = rawStart + fullStep
+  const baseY = rawStartY + fullStep;
+  // step per level from base to rawEnd
+  const step = (rawEndY - baseY) / (maxLevel - 1);
+  // compute target Y
+  const targetY = baseY + step * (level - 1);
+  // duration: 1s normal, 2s if final
+  const duration = (level === maxLevel ? 2 : 1) + 's';
+  el.style.transition = 'top ' + duration + ' ease';
   el.style.top = Math.round(targetY) + 'px';
 }
+
 
 // gameStatus listener
 socket.on('gameStatus', data => {
@@ -100,9 +110,31 @@ socket.on('answerResult', res => {
 // playerList handler with animateCircle
 socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
-  playersContainer.innerHTML = '';
-  // create circles
   list.forEach(p => {
+    let el = circles[p.nickname];
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'circle' + (p.nickname === self ? ' self' : '');
+      el.textContent = p.nickname.charAt(0).toUpperCase();
+      el.style.background = p.color;
+      el.style.position = 'absolute';
+      // initial position = baseY for level1
+      const qRect = document.getElementById('question').getBoundingClientRect();
+      const flagRect = document.getElementById('flag').getBoundingClientRect();
+      const rawStartY = qRect.top - el.offsetHeight - 1;
+      const rawEndY = flagRect.top + flagRect.height / 2 - el.offsetHeight / 2;
+      const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
+      const baseY = rawStartY + fullStep;
+      el.style.top = Math.round(baseY) + 'px';
+      const trackRect = track.getBoundingClientRect();
+      el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
+      playersContainer.append(el);
+      circles[p.nickname] = el;
+    }
+    // animate to new Y
+    animateCircle(el, p.level);
+  });
+});
     const el = document.createElement('div');
     el.className = 'circle' + (p.nickname === self ? ' self' : '');
     el.textContent = p.nickname.charAt(0).toUpperCase();
