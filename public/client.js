@@ -25,9 +25,8 @@ function animateCircle(el, level) {
   const flagRect = document.getElementById('flag').getBoundingClientRect();
   const startY = qRect.top - el.offsetHeight - 1;
   const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  // compute slots
   const step = (startY - endY) / (maxLevel - 1);
-  // slot index: start at level 2 baseline
+  // start level at 2 baseline
   const slot = Math.min(level + 1, maxLevel);
   const targetY = startY - step * (slot - 1);
   const duration = slot === maxLevel ? 2 : 1;
@@ -105,13 +104,11 @@ socket.on('answerResult', res => {
 // playerList handler with animateCircle
 socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
-  // Rectangles
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
   const startY = qRect.top - 12 - 1;
   const endY = flagRect.top + flagRect.height/2 - 12;
   const step = (startY - endY) / (maxLevel - 1);
-  // Create or update circles
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
@@ -120,7 +117,7 @@ socket.on('playerList', list => {
       el.textContent = p.nickname.charAt(0).toUpperCase();
       el.style.background = p.color;
       el.style.position = 'absolute';
-      // initial position at level2
+      // initial position at slot2
       const initY = startY - step * 1;
       el.style.top = Math.round(initY) + 'px';
       const trackRect = track.getBoundingClientRect();
@@ -128,7 +125,6 @@ socket.on('playerList', list => {
       playersContainer.append(el);
       circles[p.nickname] = el;
     }
-    // Animate to new slot
     animateCircle(el, p.level);
   });
 });// animate to level positions
@@ -140,7 +136,7 @@ socket.on('playerList', list => {
 
 // game over handler
 socket.on('gameOver', data => {
-  // delay until animation completes (2s) + 1s pause
+  // wait for final animation (2s) + 1s pause
   setTimeout(() => {
     gameDiv.classList.remove('visible');
     resultDiv.classList.add('visible');
