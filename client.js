@@ -41,6 +41,10 @@ socket.on('countdown',n=>{
 
 // Player circles
 socket.on('playerList',list=>{
+  // Anchor container above question
+  playersContainer.style.top = '0px';
+  playersContainer.style.bottom = (questionContainer.offsetHeight + 1) + 'px';
+
   // remove disconnected
   Object.keys(circles).forEach(k=>{ if(!list.find(p=>p.nickname===k)){ playersContainer.removeChild(circles[k].el); delete circles[k]; } });
   const cw=playersContainer.clientWidth, ch=playersContainer.clientHeight;
