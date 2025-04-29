@@ -1,277 +1,277 @@
 [
   {
     "order": 1,
-    "question": "2 + 2 = ?",
+    "question": "Вопрос 1 уровня 1?",
     "options": [
-      "3",
-      "4",
-      "5",
-      "6"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 1,
-    "question": "Цвет неба?",
+    "question": "Вопрос 2 уровня 1?",
     "options": [
-      "Зелёный",
-      "Синий",
-      "Красный",
-      "Жёлтый"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 1,
-    "question": "Сколько пальцев на руке?",
+    "question": "Вопрос 3 уровня 1?",
     "options": [
-      "4",
-      "5",
-      "6",
-      "7"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 1,
-    "question": "Столица России?",
+    "question": "Вопрос 4 уровня 1?",
     "options": [
-      "Париж",
-      "Москва",
-      "Лондон",
-      "Берлин"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 1,
-    "question": "Число дней в неделе?",
+    "question": "Вопрос 5 уровня 1?",
     "options": [
-      "5",
-      "6",
-      "7",
-      "8"
-    ],
-    "answerIndex": 2
-  },
-  {
-    "order": 2,
-    "question": "5 * 3 = ?",
-    "options": [
-      "15",
-      "20",
-      "10",
-      "25"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
     "answerIndex": 0
   },
   {
     "order": 2,
-    "question": "Вода – это ...",
+    "question": "Вопрос 1 уровня 2?",
     "options": [
-      "Газ",
-      "Жидкость",
-      "Твердое тело",
-      "Плазма"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 2,
-    "question": "Основной цвет флага Франции?",
+    "question": "Вопрос 2 уровня 2?",
     "options": [
-      "Красный",
-      "Зеленый",
-      "Синий",
-      "Желтый"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 2
+    "answerIndex": 0
   },
   {
     "order": 2,
-    "question": "Часов в сутках?",
+    "question": "Вопрос 3 уровня 2?",
     "options": [
-      "12",
-      "24",
-      "48",
-      "36"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 2,
-    "question": "Сколько дней в високосном году?",
+    "question": "Вопрос 4 уровня 2?",
     "options": [
-      "365",
-      "364",
-      "366",
-      "367"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 2
+    "answerIndex": 0
   },
   {
-    "order": 3,
-    "question": "Планета ближе к Солнцу?",
+    "order": 2,
+    "question": "Вопрос 5 уровня 2?",
     "options": [
-      "Меркурий",
-      "Венера",
-      "Марс",
-      "Земля"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
     "answerIndex": 0
   },
   {
     "order": 3,
-    "question": "Континентов на Земле?",
+    "question": "Вопрос 1 уровня 3?",
     "options": [
-      "5",
-      "6",
-      "7",
-      "8"
-    ],
-    "answerIndex": 2
-  },
-  {
-    "order": 3,
-    "question": "Семьсот восемьдесят один — это ...",
-    "options": [
-      "781",
-      "718",
-      "871",
-      "817"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
     "answerIndex": 0
   },
   {
     "order": 3,
-    "question": "Самый большой океан?",
+    "question": "Вопрос 2 уровня 3?",
     "options": [
-      "Атлантический",
-      "Индийский",
-      "Тихий",
-      "Северный"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 2
+    "answerIndex": 0
   },
   {
     "order": 3,
-    "question": "Столица Японии?",
+    "question": "Вопрос 3 уровня 3?",
     "options": [
-      "Пекин",
-      "Токио",
-      "Сеул",
-      "Бангкок"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
+  },
+  {
+    "order": 3,
+    "question": "Вопрос 4 уровня 3?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 0
+  },
+  {
+    "order": 3,
+    "question": "Вопрос 5 уровня 3?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 0
   },
   {
     "order": 4,
-    "question": "Электрон имеет заряд ...",
+    "question": "Вопрос 1 уровня 4?",
     "options": [
-      "Положительный",
-      "Отрицательный",
-      "Нулевой",
-      "Переменный"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 4,
-    "question": "7+8*2 = ?",
+    "question": "Вопрос 2 уровня 4?",
     "options": [
-      "30",
-      "23",
-      "22",
-      "16"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 4,
-    "question": "Сколько зубцов у вилки?",
+    "question": "Вопрос 3 уровня 4?",
     "options": [
-      "3",
-      "4",
-      "5",
-      "6"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 4,
-    "question": "Квадрат числа 5 = ?",
+    "question": "Вопрос 4 уровня 4?",
     "options": [
-      "10",
-      "15",
-      "25",
-      "30"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 2
+    "answerIndex": 0
   },
   {
     "order": 4,
-    "question": "Колес у автомобиля обычно ...",
+    "question": "Вопрос 5 уровня 4?",
     "options": [
-      "2",
-      "3",
-      "4",
-      "5"
-    ],
-    "answerIndex": 2
-  },
-  {
-    "order": 5,
-    "question": "Планет в Солнечной системе?",
-    "options": [
-      "7",
-      "8",
-      "9",
-      "10"
-    ],
-    "answerIndex": 1
-  },
-  {
-    "order": 5,
-    "question": "Дней в феврале?",
-    "options": [
-      "28",
-      "29",
-      "30",
-      "31"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
     "answerIndex": 0
   },
   {
     "order": 5,
-    "question": "Букв в русском алфавите?",
+    "question": "Вопрос 1 уровня 5?",
     "options": [
-      "30",
-      "31",
-      "32",
-      "33"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 5,
-    "question": "Первая буква русского алфавита?",
+    "question": "Вопрос 2 уровня 5?",
     "options": [
-      "Б",
-      "А",
-      "В",
-      "Г"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
   },
   {
     "order": 5,
-    "question": "Километров в миле ≈ ?",
+    "question": "Вопрос 3 уровня 5?",
     "options": [
-      "1.2",
-      "1.6",
-      "2.0",
-      "2.5"
+      "A",
+      "B",
+      "C",
+      "D"
     ],
-    "answerIndex": 1
+    "answerIndex": 0
+  },
+  {
+    "order": 5,
+    "question": "Вопрос 4 уровня 5?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 0
+  },
+  {
+    "order": 5,
+    "question": "Вопрос 5 уровня 5?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 0
   }
 ]
