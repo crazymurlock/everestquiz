@@ -46,6 +46,10 @@ socket.on('countdown', n=>{
     lobbyDiv.classList.remove('visible');
     gameDiv.classList.add('visible');
     track.style.display = 'block';
+    flag.style.display = 'block';
+    playersContainer.style.display = 'block';
+    document.getElementById('question').style.display = 'block';
+    track.style.display = 'block';
     flag.style.display  = 'block';
     cont.style.display  = 'block';
     document.getElementById('question').style.display='block';
