@@ -1,4 +1,4 @@
 npm install
 npm start
 
-Admin: /evergameadmin865
+Admin panel: /evergameadmin865

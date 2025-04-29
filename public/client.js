@@ -1,78 +1,89 @@
-const socket=io();
-let self='';
-const joinDiv=document.getElementById('join'),
-      lobbyDiv=document.getElementById('lobby'),
-      gameDiv=document.getElementById('game'),
-      resultDiv=document.getElementById('result'),
-      countdown=document.getElementById('countdownOverlay'),
-      cnt=document.getElementById('cnt'),
-      lobbyPlayers=document.getElementById('lobbyPlayers'),
-      playersContainer=document.getElementById('playersContainer'),
-      track=document.getElementById('track'),
-      joinBtn=document.getElementById('joinBtn'),
-      nickInput=document.getElementById('nick'),
-      qtext=document.getElementById('qtext'),
-      opts=document.getElementById('opts'),
-      winnerText=document.getElementById('winnerText'),
-      resStats=document.getElementById('resStats');
+const socket = io();
+let self = '';
+const joinDiv = document.getElementById('join'),
+      lobbyDiv = document.getElementById('lobby'),
+      gameDiv  = document.getElementById('game'),
+      resultDiv= document.getElementById('result'),
+      cntOv    = document.getElementById('countdownOverlay'),
+      cntNum   = document.getElementById('cnt'),
+      lobbyPl  = document.getElementById('lobbyPlayers'),
+      track    = document.getElementById('track'),
+      flag     = document.getElementById('flag'),
+      cont     = document.getElementById('playersContainer'),
+      joinBtn  = document.getElementById('joinBtn'),
+      nickIn   = document.getElementById('nick'),
+      qtext    = document.getElementById('qtext'),
+      optsDiv  = document.getElementById('opts'),
+      winnerH  = document.getElementById('winnerText'),
+      statsTb  = document.getElementById('resStats');
+
 const circles={}, maxLevel=5;
 
-// gameStatus
-socket.on('gameStatus',d=>{
-  if(d.open){
-    // if open, allow join
-  } else location='/closed.html';
+// статус игры
+socket.on('gameStatus',data=>{
+  if(!data.open) location='/closed.html';
 });
 
 // join
-joinBtn.onclick=()=>{
-  const nick=nickInput.value.trim(); if(!nick) return;
-  self=nick; socket.emit('join',nick);
+joinBtn.onclick = () => {
+  const nick = nickIn.value.trim(); if(!nick) return;
+  self = nick; socket.emit('join',nick);
   joinDiv.classList.remove('visible');
   lobbyDiv.classList.add('visible');
 };
 
-// lobby list
+// лобби
 socket.on('lobby',list=>{
-  lobbyPlayers.innerHTML='';
-  list.forEach(n=>{const d=document.createElement('div');d.textContent=n; lobbyPlayers.append(d);});
+  lobbyPl.innerHTML='';
+  list.forEach(n=>{const d=document.createElement('div');d.textContent=n; lobbyPl.append(d);});
 });
 
 // countdown
 socket.on('countdown',n=>{
-  if(n>0){cnt.textContent=n;countdown.classList.add('show');}
-  else{countdown.classList.remove('show'); lobbyDiv.classList.remove('visible'); gameDiv.classList.add('visible');}
+  if(n>0){
+    cntNum.textContent=n; cntOv.classList.add('show');
+  } else {
+    cntOv.classList.remove('show');
+    lobbyDiv.classList.remove('visible');
+    gameDiv.classList.add('visible');
+    track.style.display = 'block';
+    flag.style.display = 'block';
+    cont.style.display = 'block';
+    document.getElementById('question').style.display = 'block';
+  }
 });
 
-// questions
+// question
 socket.on('question',q=>{
-  qtext.textContent=q.question; opts.innerHTML='';
-  q.options.forEach((o,i)=>{const b=document.createElement('button');b.className='option-btn';b.textContent=o; b.onclick=()=>socket.emit('answer',i);opts.append(b);});
+  qtext.textContent = q.question;
+  optsDiv.innerHTML = '';
+  q.options.forEach((o,i)=>{const b=document.createElement('button');b.className='option-btn';b.textContent=o; b.onclick=()=>socket.emit('answer',i); optsDiv.append(b);});
 });
 
-// answerResult
+// answer result
 socket.on('answerResult',res=>{
-  Array.from(opts.children).forEach((b,i)=>{if(i===res.correctIndex) b.classList.add('correct'); else if(!res.correct) b.classList.add('wrong'); b.disabled=true;});
-  setTimeout(()=>opts.innerHTML='',800);
+  Array.from(optsDiv.children).forEach((b,i)=>{
+    if(i===res.correctIndex) b.classList.add('correct');
+    else if(!res.correct)   b.classList.add('wrong');
+    b.disabled = true;
+  });
+  setTimeout(()=>optsDiv.innerHTML='',800);
 });
 
-// playerList for circles
+// playerList circles
 socket.on('playerList',list=>{
-  // clear old
-  playersContainer.innerHTML='';
-  const rect=track.getBoundingClientRect();
-  const height = rect.height;
+  if(!gameDiv.classList.contains('visible')) return;
+  cont.innerHTML='';
+  const rect = track.getBoundingClientRect(), height = rect.height;
   list.forEach(p=>{
-    const el=document.createElement('div');
-    el.className='circle'; if(p.nickname===self) el.classList.add('self');
-    el.textContent=p.nickname.charAt(0).toUpperCase();
-    el.style.background=p.color;
-    playersContainer.append(el);
+    const el = document.createElement('div');
+    el.className = 'circle' + (p.nickname===self?' self':'');
+    el.textContent = p.nickname[0].toUpperCase();
+    el.style.background = p.color;
+    cont.append(el);
   });
-  // position
   list.forEach(p=>{
-    const el = Array.from(playersContainer.children).find(e=>e.textContent===p.nickname.charAt(0).toUpperCase());
-    const top0 = rect.bottom - el.offsetHeight/2;
+    const el = cont.querySelector(`[textContent="${p.nickname[0].toUpperCase()}"]`);
     const step = height/(maxLevel-1);
     const y = rect.bottom - step*(p.level-1);
     el.style.top = y + 'px';
@@ -81,11 +92,15 @@ socket.on('playerList',list=>{
 });
 
 // gameOver
-socket.on('gameOver',d=>{
+socket.on('gameOver',data=>{
   gameDiv.classList.remove('visible');
   resultDiv.classList.add('visible');
-  winnerText.textContent = `🏅 ${d.winner.nickname} — ${d.winner.correct} правильн. за ${Math.round(d.winner.time/1000)}с`;
-  resStats.innerHTML='';
-  d.stats.forEach(p=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;resStats.append(tr);});
+  winnerH.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
+  statsTb.innerHTML = '';
+  data.stats.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+    statsTb.append(tr);
+  });
   confetti();
 });
