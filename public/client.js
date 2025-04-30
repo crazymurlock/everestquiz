@@ -100,7 +100,9 @@ socket.on('answerResult', res => {
 });
 
 // PlayerList
-socket.on('playerList', list => { list.forEach(p => {
+socket.on('playerList', list => {
+  if (!gameDiv.classList.contains('visible')) return;
+  list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
       el = document.createElement('div');
@@ -116,8 +118,8 @@ socket.on('playerList', list => { list.forEach(p => {
       const baseY     = rawStartY + fullStep * 3;
       el.style.top = Math.round(baseY) + 'px';
       const trackRect = track.getBoundingClientRect();
-      
       playersContainer.append(el);
+      // center horizontally under track
       const trackRect = track.getBoundingClientRect();
       const centerX = trackRect.left + trackRect.width/2 - el.offsetWidth/2;
       el.style.left = centerX + 'px';

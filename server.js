@@ -48,8 +48,6 @@ app.post('/evergameadmin865/start', (req, res) => {
   }
   setTimeout(() => {
     io.emit('countdown', 0);
-      // initial circles before first question
-      io.emit('playerList', Object.values(players).map(p=>({nickname:p.nickname, level:p.level, color:p.color})));
     Object.keys(players).forEach(id => sendQuestion(id));
   }, 6000);
   res.send({});
