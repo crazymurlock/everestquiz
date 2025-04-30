@@ -125,7 +125,7 @@ socket.on('playerList', list => {
       // initial start
       const qRect = questionDiv.getBoundingClientRect();
       const startX = window.innerWidth/2 - el.offsetWidth/2;
-      const startY = qRect.top - el.offsetHeight - 1;
+      const startY = qRect.top - el.offsetHeight - 2;
       el._start = {x: startX, y: startY};
       el._level = p.level;
       el.style.left = `${startX}px`;
