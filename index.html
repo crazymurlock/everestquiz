@@ -52,6 +52,46 @@
         overflow: hidden;
     }
 
+.circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.circle.self {
+  border: 3px solid #ffd700;
+  box-shadow: 0 0 15px rgba(255,215,0,0.4);
+}
+
+.circle-label {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  font-size: 10px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.circle-level {
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
     .player-avatar.current-player {
         border-color: #ffcc00;
         box-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
