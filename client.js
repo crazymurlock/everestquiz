@@ -1,16 +1,3 @@
-
-const joinBtn  = document.getElementById('joinBtn'),
-      nickIn   = document.getElementById('nick');
-
-joinBtn.onclick = () => {
-  const nick = nickIn.value.trim();
-  if (!nick) return;
-  self = nick;
-  socket.emit('join', nick);
-  joinDiv.classList.remove('visible');
-  lobbyDiv.classList.add('visible');
-};
-
 const socket = io();
 let self = '';
 const joinDiv = document.getElementById('join'),
@@ -104,4 +91,3 @@ socket.on('gameOver', data => {
     confetti();
   },3000);
 });
-
