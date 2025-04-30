@@ -21,11 +21,11 @@ const joinDiv = document.getElementById('join'),
 const circles = {};
 const maxLevel = 5;
 
-// animateCircle: move upward from bottom to top center
+// animateCircle: move from just above question box to top center
 function animateCircle(el) {
   const level = el._level;
   const startX = el._startX;
-  const startY = window.innerHeight - el.offsetHeight - 10; // start near bottom
+  const startY = el._startY;  // already calculated from question box
   const endX = window.innerWidth / 2 - el.offsetWidth / 2;
   const endY = 0;
   const ratio = (Math.min(level, maxLevel) - 1) / (maxLevel - 1);
