@@ -27,7 +27,8 @@ const maxLevel = 5;
 function animateCircle(el) {
   const level = el._level;
   const qBox = document.getElementById('question').getBoundingClientRect();
-  const startY = qBox.top - el.offsetHeight - 2;
+  const offset = (qBox.top - 10) / (maxLevel - 1);
+  const startY = qBox.top - el.offsetHeight - 2 + offset * 2;
   const endY = 0;
   const progress = (Math.min(level, maxLevel) - 1) / (maxLevel - 1);
   const newY = startY - (startY - endY) * progress;
