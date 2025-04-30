@@ -108,36 +108,43 @@ socket.on('playerList', list => {
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
-    let el = document.createElement('div');
-    el.className = 'circle' + (p.nickname===self ? ' self' : '');
-    el.style.position = 'absolute';
-    el.style.background = p.color;
-    // label
-    const label = document.createElement('div');
-    label.className = 'player-label' + (p.nickname===self ? ' self' : '');
-    label.textContent = p.nickname;
-    el.append(label);
-    // letter
-    const letter = document.createElement('div');
-    letter.className = 'circle-letter';
-    letter.textContent = p.nickname.charAt(0).toUpperCase();
-    el.append(letter);
-    // fixed start coordinates: center above question
-    const qRect = questionDiv.getBoundingClientRect();
-    const startX = window.innerWidth/2 - el.offsetWidth/2;
-    const startY = qRect.top - el.offsetHeight - 2;
-    el._start = {x: startX, y: startY};
-    el._level = p.level;
-    el.style.left = startX + 'px';
-    el.style.top = startY + 'px';
-    circles[p.nickname] = el;
-    playersContainer.append(el);
-    
+      el = document.createElement('div');
+      el.className = 'circle' + (p.nickname === self ? ' self' : '');
+      el.style.position = 'absolute';
+      el.style.background = p.color;
+
+      // label above circle
+      const label = document.createElement('div');
+      label.className = 'circle-label' + (p.nickname === self ? ' self' : '');
+      label.textContent = p.nickname.substring(0, 10);
+      el.append(label);
+
+      // letter inside circle
+      const letter = document.createElement('div');
+      letter.className = 'circle-letter';
+      letter.textContent = p.nickname.charAt(0).toUpperCase();
+      el.append(letter);
+
+      // start position: center above question
+      const qRect = questionDiv.getBoundingClientRect();
+      const startX = window.innerWidth/2 - el.offsetWidth/2;
+      const startY = qRect.top - el.offsetHeight - 2;
+      el._startX = startX;
+      el._startY = startY;
+      el._level = p.level;
+
+      el.style.left = startX + 'px';
+      el.style.top = startY + 'px';
+
+      circles[p.nickname] = el;
+      playersContainer.append(el);
     } else {
       el._level = p.level;
     }
-    animateCircle(el, p.level);
+    // animate along beam
+    animateCircle(el, el._level);
   });
+});
 });
 
 
