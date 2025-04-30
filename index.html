@@ -3,45 +3,116 @@
 <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet">
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
-<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Raleway',sans-serif;background:#f5f5f5;overflow:hidden;}
-#join,#lobby,#game,#result{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;}
-#join.visible,#lobby.visible,#game.visible,#result.visible{display:flex;}
-.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:90%;max-width:400px;text-align:center;}
-input,button{width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;}
-button{background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;cursor:pointer;}
-#countdownOverlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:10;}
-#countdownOverlay.show{display:flex;}#countdownOverlay h1{color:#fff;font-size:96px;}
-#lobbyPlayers{width:100%;text-align:left;}
-#track{position:absolute;left:50%;transform:translateX(-50%);width:4px;top:20%;bottom:150px;background:#ccc;border-radius:2px;display:none;}
-#flag{position:absolute;top:20%;left:50%;transform:translateX(-50%) translateY(-12px);width:24px;display:none;}
-#playersContainer{position:absolute;left:50%;transform:translateX(-50%);width:100%;height:calc(80% - 150px);top:20%;overflow:visible;display:none;z-index:1;}
-.circle{position:absolute;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:top 1s ease;}
-.circle.self{width:40px;height:40px;font-weight:bold;}
-#question{position:absolute;bottom:0;left:0;right:0;background:#fff;padding:20px;box-shadow:0 -2px 5px rgba(0,0,0,0.2);z-index:20;display:none;}
-.option-btn{display:block;width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;background:#667eea;color:#fff;cursor:pointer;}
-.option-btn.correct{background:#C8F7C5;} .option-btn.wrong{background:#F7C5C5;}
-#result table{width:100%;border-collapse:collapse;margin-top:10px;}#result th,#result td{padding:8px;border:1px solid #ddd;text-align:center;}
+<style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Raleway',sans-serif;background:#f5f5f5;overflow:hidden;}
+    #join,#lobby,#game,#result{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;}
+    #join.visible,#lobby.visible,#game.visible,#result.visible{display:flex;}
+    .card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:90%;max-width:400px;text-align:center;}
+    input,button{width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;}
+    button{background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;cursor:pointer;}
+    #countdownOverlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:100;} /* Higher z-index */
+    #countdownOverlay.show{display:flex;}#countdownOverlay h1{color:#fff;font-size:96px;}
+    #lobbyPlayers{width:100%;text-align:left; max-height: 300px; overflow-y: auto;} /* Added scroll for many players */
+    #lobbyPlayers div { padding: 4px 0; border-bottom: 1px solid #eee; } /* Style lobby players */
 
-.circle-label {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #000;
-  font-size: 10px;
-}
-.circle-letter {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  font-size: 14px;
-}
-\n</style></head><body>
+    /* Styles for the new Progress Visualizer */
+    #mountain-progress-container {
+        position: absolute; /* Positioned within #game */
+        top: 5%; /* Adjust top position */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;      /* Width of the "mountain" */
+        height: 70%;     /* Height relative to #game */
+        background: linear-gradient(to top, #8b4513, #a0522d, #cd853f, #deb887, #f5f5dc); /* Example gradient */
+        border: 1px solid #555;
+        border-radius: 5px;
+        overflow: hidden; /* Keep avatars inside */
+        z-index: 5;      /* Behind questions, above background */
+        display: none; /* Initially hidden */
+    }
+
+    .player-avatar {
+        position: absolute;
+        width: 25px;       /* Avatar size */
+        height: 25px;
+        background-color: #007bff; /* Default color, will be overridden */
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: top 0.7s ease-in-out, left 0.5s ease-out;
+        transform: translate(-50%, -50%); /* Center avatar */
+        z-index: 10; /* Above container background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 10px;
+        color: white;
+        font-weight: bold;
+        overflow: hidden;
+    }
+
+    .player-avatar.current-player {
+        border-color: #ffcc00;
+        box-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+        z-index: 11;
+        width: 28px;
+        height: 28px;
+    }
+
+     /* Optional: Style for winner */
+    .player-avatar.winner {
+        border-color: lime;
+        box-shadow: 0 0 15px 5px rgba(50, 205, 50, 0.8);
+        z-index: 12; /* Above current player highlight */
+        /* Add pulsating animation if desired */
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.1); }
+        100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+
+    .player-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    /* Question Area */
+    #question{position:absolute;bottom:0;left:0;right:0;background:#fff;padding:20px;box-shadow:0 -2px 5px rgba(0,0,0,0.2);z-index:20;display:none;} /* Ensure it's above mountain */
+    #qtext { margin-bottom: 15px; font-size: 1.1em; }
+    #opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } /* Layout options */
+    .option-btn{display:block;width:100%;padding:12px;margin:0;border:none;border-radius:8px;background:#667eea;color:#fff;cursor:pointer; transition: background-color 0.3s ease;}
+    .option-btn:hover { background: #5a6fcf; }
+    .option-btn.correct{background:#C8F7C5; color: #333; font-weight: bold;}
+    .option-btn.wrong{background:#F7C5C5; color: #333;}
+    .option-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    /* Result Table */
+    #result table{width:100%;border-collapse:collapse;margin-top:10px;}
+    #result th,#result td{padding:8px;border:1px solid #ddd;text-align:center;}
+    #result th { background-color: #eee; }
+
+</style></head><body>
 <div id="countdownOverlay"><h1 id="cnt">5</h1></div>
 <div id="join" class="visible"><div class="card"><h2>Введите никнейм</h2><input id="nick" placeholder="Никнейм"><button id="joinBtn">Присоединиться</button></div></div>
 <div id="lobby"><div class="card"><h2>Лобби</h2><div id="lobbyPlayers"></div><p>Ожидаем начала...</p></div></div>
-<div id="game"><div id="track"></div><img id="flag" src="flag.png"><div id="playersContainer"></div><div id="question"><div id="qtext"></div><div id="opts"></div></div></div>
+
+<div id="game">
+    <div id="mountain-progress-container">
+        </div>
+    <div id="question">
+        <div id="qtext"></div>
+        <div id="opts"></div>
+    </div>
+</div>
+
 <div id="result"><div class="card"><h2 id="winnerText"></h2><table><thead><tr><th>Игрок</th><th>Прав.</th><th>Время (с)</th></tr></thead><tbody id="resStats"></tbody></table></div></div>
-<script src="client.js"></script></body></html>
+
+<script src="client.js"></script>
+</body></html>
