@@ -20,48 +20,37 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
-// animateCircle: плавный подъём от вопроса к флагу с увеличенным шагом
+// animateCircle: плавный подъём от вопроса к флагу (база уровень 4)
 function animateCircle(el, level) {
-  const qRect = document.getElementById('question').getBoundingClientRect();
-  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const qRect = questionDiv.getBoundingClientRect();
+  const flagRect = flag.getBoundingClientRect();
   const rawStartY = qRect.top - el.offsetHeight - 1;
   const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
   const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
-  let targetY = rawStartY + fullStep * (level - 1);
-  // if final, snap to rawEndY and adjust left 3px left of flag
-  if (level >= maxLevel) {
+  // base at level4
+  const baseY = rawStartY + fullStep * 3;
+  // original step
+  let step = (rawEndY - baseY) / (maxLevel - 1);
+  // double the distance per level
+  step = step * 2;
+  let targetY = baseY + step * (level - 1);
+  // clamp final position
+  if (level >= maxLevel || targetY > rawEndY) {
     targetY = rawEndY;
-    const leftX = flagRect.left - 3 - el.offsetWidth/2;
+  }
+  // apply transition and position
+  if (level >= maxLevel) {
     el.style.transition = 'top 2s ease, left 2s ease';
+    // 3px left of flag center
+    const leftX = flagRect.left + flagRect.width/2 - el.offsetWidth/2 - 3;
     el.style.left = leftX + 'px';
   } else {
     el.style.transition = 'top 1s ease';
-    // keep CSS centering for left
+    // horizontal center by CSS
   }
   el.style.top = Math.round(targetY) + 'px';
 }
 
-
-// animateCircle: плавный подъём от вопроса к флагу с увеличенным шагом
-function animateCircle(el, level) {
-  const qRect = document.getElementById('question').getBoundingClientRect();
-  const flagRect = document.getElementById('flag').getBoundingClientRect();
-  const rawStartY = qRect.top - el.offsetHeight - 1;
-  const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
-  let targetY = rawStartY + fullStep * (level - 1);
-  // if final, snap to rawEndY and adjust left 3px left of flag
-  if (level >= maxLevel) {
-    targetY = rawEndY;
-    const leftX = flagRect.left - 3 - el.offsetWidth/2;
-    el.style.transition = 'top 2s ease, left 2s ease';
-    el.style.left = leftX + 'px';
-  } else {
-    el.style.transition = 'top 1s ease';
-    // keep CSS centering for left
-  }
-  el.style.top = Math.round(targetY) + 'px';
-}
 
 // Handle gameStatus
 socket.on('gameStatus', data => {
@@ -100,9 +89,7 @@ socket.on('countdown', n => {
     track.style.display = 'block';
     flag.style.display  = 'block';
     playersContainer.style.display = 'block';
-    document.getElementById('question').style.display = 'block';
-    // request initial positions via server emit
-    // server emits playerList already
+    questionDiv.style.display = 'block';
   }
 });
 
@@ -130,7 +117,9 @@ socket.on('answerResult', res => {
 });
 
 // PlayerList
-socket.on('playerList', list => { list.forEach(p => {
+socket.on('playerList', list => {
+  if (!gameDiv.classList.contains('visible')) return;
+  list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
       el = document.createElement('div');
