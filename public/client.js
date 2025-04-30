@@ -10,6 +10,7 @@ const joinDiv = document.getElementById('join'),
       track    = document.getElementById('track'),
       flag     = document.getElementById('flag'),
       playersContainer = document.getElementById('playersContainer'),
+      questionDiv = document.getElementById('question'),
       joinBtn  = document.getElementById('joinBtn'),
       nickIn   = document.getElementById('nick'),
       qtext    = document.getElementById('qtext'),
@@ -21,12 +22,11 @@ const circles = {}, maxLevel = 5;
 
 // animateCircle: плавный подъём от вопроса к флагу (база уровень 4)
 function animateCircle(el, level) {
-  const qRect = document.getElementById('question').getBoundingClientRect();
-  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const qRect = questionDiv.getBoundingClientRect();
+  const flagRect = flag.getBoundingClientRect();
   const rawStartY = qRect.top - el.offsetHeight - 1;
   const rawEndY   = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
   const fullStep  = (rawEndY - rawStartY) / (maxLevel - 1);
-  // базовая точка на уровне 4 => rawStartY + fullStep*3
   const baseY     = rawStartY + fullStep * 3;
   const step      = (rawEndY - baseY) / (maxLevel - 1);
   const targetY   = baseY + step * (level - 1);
@@ -35,14 +35,12 @@ function animateCircle(el, level) {
   el.style.top = Math.round(targetY) + 'px';
 }
 
-
-
-// Отслеживаем статус игры
+// Handle gameStatus
 socket.on('gameStatus', data => {
-  if (!data.open) location='/closed.html';
+  if (!data.open) location = '/closed.html';
 });
 
-// Кнопка присоединения
+// Join
 joinBtn.onclick = () => {
   const nick = nickIn.value.trim();
   if (!nick) return;
@@ -52,7 +50,7 @@ joinBtn.onclick = () => {
   lobbyDiv.classList.add('visible');
 };
 
-// Список в лобби
+// Lobby update
 socket.on('lobby', list => {
   lobbyPl.innerHTML = '';
   list.forEach(n => {
@@ -62,9 +60,9 @@ socket.on('lobby', list => {
   });
 });
 
-// Обратный отсчёт
+// Countdown
 socket.on('countdown', n => {
-  if (n>0) {
+  if (n > 0) {
     cntNum.textContent = n;
     cntOv.classList.add('show');
   } else {
@@ -74,15 +72,15 @@ socket.on('countdown', n => {
     track.style.display = 'block';
     flag.style.display  = 'block';
     playersContainer.style.display = 'block';
-    document.getElementById('question').style.display = 'block';
+    questionDiv.style.display = 'block';
   }
 });
 
-// Отображение вопроса
+// Question
 socket.on('question', q => {
   qtext.textContent = q.question;
   optsDiv.innerHTML = '';
-  q.options.forEach((opt, i) => {
+  q.options.forEach((opt,i) => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.textContent = opt;
@@ -91,42 +89,36 @@ socket.on('question', q => {
   });
 });
 
-// Результат ответа
+// Answer result
 socket.on('answerResult', res => {
-  Array.from(optsDiv.children).forEach((b, i) => {
-    if (i===res.correctIndex) b.classList.add('correct');
-    else if (!res.correct)     b.classList.add('wrong');
+  Array.from(optsDiv.children).forEach((b,i) => {
+    if (i === res.correctIndex) b.classList.add('correct');
+    else if (!res.correct)    b.classList.add('wrong');
     b.disabled = true;
   });
   setTimeout(()=>optsDiv.innerHTML='',800);
 });
 
-// Обновление положения кружков
+// PlayerList
 socket.on('playerList', list => {
   if (!gameDiv.classList.contains('visible')) return;
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
       el = document.createElement('div');
-      el.className = 'circle' + (p.nickname===self?' self':'');
+      el.className = 'circle' + (p.nickname === self ? ' self' : '');
       el.textContent = p.nickname.charAt(0).toUpperCase();
       el.style.background = p.color;
       el.style.position = 'absolute';
-      // initial position baseY level3
-      const qRect = document.getElementById('question').getBoundingClientRect();
-      const flagRect = document.getElementById('flag').getBoundingClientRect();
+      const qRect = questionDiv.getBoundingClientRect();
+      const flagRect = flag.getBoundingClientRect();
       const rawStartY = qRect.top - el.offsetHeight - 1;
       const rawEndY   = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
       const fullStep  = (rawEndY - rawStartY)/(maxLevel - 1);
-      const baseY     = rawStartY + fullStep * 2;
-      // initial база уровень 4
-      const qRect = document.getElementById('question').getBoundingClientRect();
-      const flagRect = document.getElementById('flag').getBoundingClientRect();
-      const rawStartY = qRect.top - el.offsetHeight - 1;
-      const rawEndY   = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-      const fullStep  = (rawEndY - rawStartY)/(maxLevel - 1);
-      const initY     = rawStartY + fullStep * 3;
-      el.style.top   = Math.round(initY) + 'px';
+      const baseY     = rawStartY + fullStep * 3;
+      el.style.top = Math.round(baseY) + 'px';
+      const trackRect = track.getBoundingClientRect();
+      el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
       playersContainer.append(el);
       circles[p.nickname] = el;
     }
@@ -134,7 +126,7 @@ socket.on('playerList', list => {
   });
 });
 
-// Конец игры
+// GameOver
 socket.on('gameOver', data => {
   setTimeout(() => {
     gameDiv.classList.remove('visible');
@@ -142,7 +134,7 @@ socket.on('gameOver', data => {
     winnerText.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
     resStats.innerHTML = '';
     data.stats.forEach(p => {
-      const tr=document.createElement('tr');
+      const tr = document.createElement('tr');
       tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
       resStats.append(tr);
     });
