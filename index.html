@@ -38,7 +38,89 @@ button{background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;cursor:point
   color: #fff;
   font-size: 14px;
 }
-\n</style></head><body>
+\n
+.circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.circle.self {
+  border: 3px solid #FFD700;
+  box-shadow: 0 0 15px rgba(255,215,0,0.5);
+}
+
+.circle-label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.circle-level {
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+
+.circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  position: absolute;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.circle.self {
+  border: 3px solid gold;
+  box-shadow: 0 0 15px rgba(255,215,0,0.5);
+}
+
+.circle-label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  font-size: 10px;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.circle-level {
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+</style></head><body>
 <div id="countdownOverlay"><h1 id="cnt">5</h1></div>
 <div id="join" class="visible"><div class="card"><h2>Введите никнейм</h2><input id="nick" placeholder="Никнейм"><button id="joinBtn">Присоединиться</button></div></div>
 <div id="lobby"><div class="card"><h2>Лобби</h2><div id="lobbyPlayers"></div><p>Ожидаем начала...</p></div></div>
