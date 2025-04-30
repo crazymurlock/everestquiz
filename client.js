@@ -21,19 +21,20 @@ const joinDiv = document.getElementById('join'),
 const circles = {};
 const maxLevel = 5;
 
-// animateCircle: move from start to top center
+// animateCircle: move upward from bottom to top center
 function animateCircle(el) {
   const level = el._level;
-  const startX = el._startX, startY = el._startY;
-  const endX = window.innerWidth/2 - el.offsetWidth/2;
+  const startX = el._startX;
+  const startY = window.innerHeight - el.offsetHeight - 10; // start near bottom
+  const endX = window.innerWidth / 2 - el.offsetWidth / 2;
   const endY = 0;
-  const ratio = (Math.min(level, maxLevel) - 1)/(maxLevel-1);
-  const targetX = startX + (endX - startX)*ratio;
-  const targetY = startY + (endY - startY)*ratio;
-  const duration = (level>=maxLevel?2:1) + 's';
+  const ratio = (Math.min(level, maxLevel) - 1) / (maxLevel - 1);
+  const targetX = startX + (endX - startX) * ratio;
+  const targetY = startY + (endY - startY) * ratio;
+  const duration = (level >= maxLevel ? 2 : 1) + 's';
   el.style.transition = `top ${duration} ease, left ${duration} ease`;
-  el.style.left = targetX + 'px';
-  el.style.top  = targetY + 'px';
+  el.style.left = `${Math.round(targetX)}px`;
+  el.style.top = `${Math.round(targetY)}px`;
 }
 
 // redirect if closed
