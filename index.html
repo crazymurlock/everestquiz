@@ -38,7 +38,11 @@ button{background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;cursor:point
   color: #fff;
   font-size: 14px;
 }
-\n</style></head><body>
+\n
+.visible {
+  display: flex !important;
+}
+</style></head><body>
 <div id="countdownOverlay"><h1 id="cnt">5</h1></div>
 <div id="join" class="visible"><div class="card"><h2>Введите никнейм</h2><input id="nick" placeholder="Никнейм"><button id="joinBtn">Присоединиться</button></div></div>
 <div id="lobby"><div class="card"><h2>Лобби</h2><div id="lobbyPlayers"></div><p>Ожидаем начала...</p></div></div>
