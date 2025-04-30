@@ -23,22 +23,19 @@ const maxLevel = 5;
 
 
 // animateCircle: move from 2px above question box to top center of screen
+
 function animateCircle(el) {
   const level = el._level;
-  const startY = el._startY;
-  const startX = el._startX;
+  const qBox = document.getElementById('question').getBoundingClientRect();
+  const startY = qBox.top - el.offsetHeight - 2;
   const endY = 0;
-  const endX = window.innerWidth / 2 - el.offsetWidth / 2;
-
   const progress = (Math.min(level, maxLevel) - 1) / (maxLevel - 1);
-  const targetY = startY - (startY - endY) * progress;
-  const targetX = endX; // always move to center horizontally
+  const newY = startY - (startY - endY) * progress;
 
-  const duration = (level >= maxLevel ? 2 : 1) + 's';
-
-  el.style.transition = `top ${duration} ease, left ${duration} ease`;
-  el.style.left = `${Math.round(targetX)}px`;
-  el.style.top = `${Math.round(targetY)}px`;
+  const centerX = window.innerWidth / 2 - el.offsetWidth / 2;
+  el.style.transition = 'top 1s ease, left 1s ease';
+  el.style.left = `${centerX}px`;
+  el.style.top = `${Math.round(newY)}px`;
 }
 
 
