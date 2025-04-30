@@ -103,38 +103,42 @@ socket.on('answerResult', res => {
 });
 
 // Player list -> circles
+
 socket.on('playerList', list => {
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
-      // create circle
       el = document.createElement('div');
       el.className = 'circle' + (p.nickname === self ? ' self' : '');
       el.style.position = 'absolute';
       el.style.background = p.color;
       // label
       const label = document.createElement('div');
-      label.className = 'player-label' + (p.nickname === self ? ' self' : '');
+      label.className = 'player-label' + (p.nickname===self?' self':'');
       label.textContent = p.nickname;
       el.append(label);
-      // add letter inside
+      // letter
       const letter = document.createElement('div');
       letter.className = 'circle-letter';
       letter.textContent = p.nickname.charAt(0).toUpperCase();
       el.append(letter);
-      // compute start coords
+      // initial start
       const qRect = questionDiv.getBoundingClientRect();
-      const startX = qRect.left + Math.random()*(qRect.width - el.offsetWidth);
+      const startX = window.innerWidth/2 - el.offsetWidth/2;
       const startY = qRect.top - el.offsetHeight - 1;
-      el._start = { x: startX, y: startY };
+      el._start = {x: startX, y: startY};
+      el._level = p.level;
+      el.style.left = `${startX}px`;
+      el.style.top = `${startY}px`;
       circles[p.nickname] = el;
       playersContainer.append(el);
+    } else {
+      el._level = p.level;
     }
-    // update level property
-    el._level = p.level;
-    // animate
     animateCircle(el, p.level);
   });
+});
+
 });
 
 // Game over
