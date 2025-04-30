@@ -21,27 +21,27 @@ const joinDiv = document.getElementById('join'),
 const circles = {};
 const maxLevel = 5;
 
-// Movement logic
-function animateCircle(el, level) {
-  const start = el._start;
-  const flagRect = flag.getBoundingClientRect();
-  const endX = flagRect.left + flagRect.width/2 - el.offsetWidth/2 - (level === maxLevel ? 3 : 0);
-  const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  const ratio = (Math.min(level, maxLevel) - 1)/(maxLevel - 1);
-  const targetX = start.x + (endX - start.x)*ratio;
-  const targetY = start.y + (endY - start.y)*ratio;
-  const duration = (level >= maxLevel ? 2 : 1) + 's';
+// animateCircle: move from start to top center
+function animateCircle(el) {
+  const level = el._level;
+  const startX = el._startX, startY = el._startY;
+  const endX = window.innerWidth/2 - el.offsetWidth/2;
+  const endY = 0;
+  const ratio = (Math.min(level, maxLevel) - 1)/(maxLevel-1);
+  const targetX = startX + (endX - startX)*ratio;
+  const targetY = startY + (endY - startY)*ratio;
+  const duration = (level>=maxLevel?2:1) + 's';
   el.style.transition = `top ${duration} ease, left ${duration} ease`;
-  el.style.left = `${Math.round(targetX)}px`;
-  el.style.top  = `${Math.round(targetY)}px`;
+  el.style.left = targetX + 'px';
+  el.style.top  = targetY + 'px';
 }
 
-// Redirect closed
+// redirect if closed
 socket.on('gameStatus', data => {
   if (!data.open) location = '/closed.html';
 });
 
-// Join button
+// join button
 joinBtn.onclick = () => {
   const nick = nickIn.value.trim();
   if (!nick) return;
@@ -51,7 +51,7 @@ joinBtn.onclick = () => {
   lobbyDiv.classList.add('visible');
 };
 
-// Lobby update
+// lobby list
 socket.on('lobby', list => {
   lobbyPl.innerHTML = '';
   list.forEach(n => {
@@ -61,9 +61,9 @@ socket.on('lobby', list => {
   });
 });
 
-// Countdown
+// countdown
 socket.on('countdown', n => {
-  if (n > 0) {
+  if (n>0) {
     cntNum.textContent = n;
     cntOv.classList.add('show');
   } else {
@@ -74,92 +74,81 @@ socket.on('countdown', n => {
     flag.style.display  = 'block';
     playersContainer.style.display = 'block';
     questionDiv.style.display = 'block';
-    // Show initial circles
-    // server emits playerList after countdown
   }
 });
 
-// Show question
+// question display
 socket.on('question', q => {
   qtext.textContent = q.question;
   optsDiv.innerHTML = '';
-  q.options.forEach((opt, i) => {
+  q.options.forEach((opt,i)=>{
     const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.textContent = opt;
+    btn.className='option-btn';
+    btn.textContent=opt;
     btn.onclick = () => socket.emit('answer', i);
     optsDiv.append(btn);
   });
 });
 
-// Answer result
+// answer result
 socket.on('answerResult', res => {
-  Array.from(optsDiv.children).forEach((b, i) => {
-    if (i === res.correctIndex) b.classList.add('correct');
-    else if (!res.correct)     b.classList.add('wrong');
+  Array.from(optsDiv.children).forEach((b,i)=>{
+    if (i===res.correctIndex) b.classList.add('correct');
+    else if (!res.correct) b.classList.add('wrong');
     b.disabled = true;
   });
-  setTimeout(() => optsDiv.innerHTML = '', 800);
+  setTimeout(()=>optsDiv.innerHTML='',800);
 });
 
-// Player list -> circles
-
+// playerList => circles
 socket.on('playerList', list => {
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
       el = document.createElement('div');
-      el.className = 'circle' + (p.nickname === self ? ' self' : '');
+      el.className = 'circle' + (p.nickname===self?' self':'');
       el.style.position = 'absolute';
       el.style.background = p.color;
-
-      // label above circle
-      const label = document.createElement('div');
-      label.className = 'circle-label' + (p.nickname === self ? ' self' : '');
-      label.textContent = p.nickname.substring(0, 10);
-      el.append(label);
-
-      // letter inside circle
-      const letter = document.createElement('div');
-      letter.className = 'circle-letter';
-      letter.textContent = p.nickname.charAt(0).toUpperCase();
-      el.append(letter);
-
-      // start position: center above question
-      const qRect = questionDiv.getBoundingClientRect();
+      // label
+      const lbl = document.createElement('div');
+      lbl.className='circle-label'+(p.nickname===self?' self':'');
+      lbl.textContent = p.nickname.substring(0,10);
+      el.append(lbl);
+      // letter
+      const lt = document.createElement('div');
+      lt.className='circle-letter';
+      lt.textContent=p.nickname.charAt(0).toUpperCase();
+      el.append(lt);
+      // start coords
+      const qRect=questionDiv.getBoundingClientRect();
       const startX = window.innerWidth/2 - el.offsetWidth/2;
       const startY = qRect.top - el.offsetHeight - 2;
       el._startX = startX;
       el._startY = startY;
       el._level = p.level;
-
-      el.style.left = startX + 'px';
-      el.style.top = startY + 'px';
-
-      circles[p.nickname] = el;
+      el.style.left = startX+'px';
+      el.style.top = startY+'px';
+      circles[p.nickname]=el;
       playersContainer.append(el);
     } else {
       el._level = p.level;
     }
-    // animate along beam
-    animateCircle(el, el._level);
+    animateCircle(el);
   });
 });
-});
 
-
-// Game over
+// gameOver
 socket.on('gameOver', data => {
-  setTimeout(() => {
+  setTimeout(()=>{
     gameDiv.classList.remove('visible');
     resultDiv.classList.add('visible');
-    winnerText.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
-    resStats.innerHTML = '';
-    data.stats.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+    winnerText.textContent=`🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
+    resStats.innerHTML='';
+    data.stats.forEach(p=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
       resStats.append(tr);
     });
     confetti();
-  }, 3000);
+  },3000);
 });
