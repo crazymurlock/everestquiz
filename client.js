@@ -21,7 +21,7 @@ const joinDiv = document.getElementById('join'),
 const circles = {};
 const maxLevel = 5;
 
-// animateCircle: from above question box to top center of screen
+// animateCircle: from 2px above question box to top center
 function animateCircle(el) {
   const level = el._level;
   const startX = el._startX;
