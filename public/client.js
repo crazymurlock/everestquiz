@@ -134,7 +134,6 @@ socket.on('playerList', list => { list.forEach(p => {
       const baseY     = rawStartY + fullStep * 3;
       el.style.top = Math.round(baseY) + 'px';
       const trackRect = track.getBoundingClientRect();
-      el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
       playersContainer.append(el);
       circles[p.nickname] = el;
     }
