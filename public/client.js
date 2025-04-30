@@ -108,30 +108,31 @@ socket.on('playerList', list => {
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
-      el = document.createElement('div');
-      el.className = 'circle' + (p.nickname === self ? ' self' : '');
-      el.style.position = 'absolute';
-      el.style.background = p.color;
-      // label
-      const label = document.createElement('div');
-      label.className = 'player-label' + (p.nickname===self?' self':'');
-      label.textContent = p.nickname;
-      el.append(label);
-      // letter
-      const letter = document.createElement('div');
-      letter.className = 'circle-letter';
-      letter.textContent = p.nickname.charAt(0).toUpperCase();
-      el.append(letter);
-      // initial start
-      const qRect = questionDiv.getBoundingClientRect();
-      const startX = window.innerWidth/2 - el.offsetWidth/2;
-      const startY = qRect.top - el.offsetHeight - 2;
-      el._start = {x: startX, y: startY};
-      el._level = p.level;
-      el.style.left = `${startX}px`;
-      el.style.top = `${startY}px`;
-      circles[p.nickname] = el;
-      playersContainer.append(el);
+    let el = document.createElement('div');
+    el.className = 'circle' + (p.nickname===self ? ' self' : '');
+    el.style.position = 'absolute';
+    el.style.background = p.color;
+    // label
+    const label = document.createElement('div');
+    label.className = 'player-label' + (p.nickname===self ? ' self' : '');
+    label.textContent = p.nickname;
+    el.append(label);
+    // letter
+    const letter = document.createElement('div');
+    letter.className = 'circle-letter';
+    letter.textContent = p.nickname.charAt(0).toUpperCase();
+    el.append(letter);
+    // fixed start coordinates: center above question
+    const qRect = questionDiv.getBoundingClientRect();
+    const startX = window.innerWidth/2 - el.offsetWidth/2;
+    const startY = qRect.top - el.offsetHeight - 2;
+    el._start = {x: startX, y: startY};
+    el._level = p.level;
+    el.style.left = startX + 'px';
+    el.style.top = startY + 'px';
+    circles[p.nickname] = el;
+    playersContainer.append(el);
+    
     } else {
       el._level = p.level;
     }
