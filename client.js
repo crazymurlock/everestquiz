@@ -20,34 +20,46 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
-// animateCircle: плавный подъём от окна вопроса к флагу (база уровень 4)
+// animateCircle: плавный подъём от вопроса к флагу с увеличенным шагом
 function animateCircle(el, level) {
   const qRect = document.getElementById('question').getBoundingClientRect();
   const flagRect = document.getElementById('flag').getBoundingClientRect();
   const rawStartY = qRect.top - el.offsetHeight - 1;
   const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
   const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
-  const baseY = rawStartY + fullStep * 3;
-  const step = (rawEndY - baseY) / (maxLevel - 1);
-  const targetY = baseY + step * (level - 1);
-  const duration = (level === maxLevel ? 2 : 1) + 's';
-  el.style.transition = 'top ' + duration + ' ease';
-  el.style.top = `${Math.round(targetY)}px`;
+  let targetY = rawStartY + fullStep * (level - 1);
+  // if final, snap to rawEndY and adjust left 3px left of flag
+  if (level >= maxLevel) {
+    targetY = rawEndY;
+    const leftX = flagRect.left - 3 - el.offsetWidth/2;
+    el.style.transition = 'top 2s ease, left 2s ease';
+    el.style.left = leftX + 'px';
+  } else {
+    el.style.transition = 'top 1s ease';
+    // keep CSS centering for left
+  }
+  el.style.top = Math.round(targetY) + 'px';
 }
 
 
-// animateCircle: плавный подъём от вопроса к флагу (база уровень 4)
+// animateCircle: плавный подъём от вопроса к флагу с увеличенным шагом
 function animateCircle(el, level) {
-  const qRect = questionDiv.getBoundingClientRect();
-  const flagRect = flag.getBoundingClientRect();
+  const qRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
   const rawStartY = qRect.top - el.offsetHeight - 1;
-  const rawEndY   = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  const fullStep  = (rawEndY - rawStartY) / (maxLevel - 1);
-  const baseY     = rawStartY + fullStep * 3;
-  const step      = (rawEndY - baseY) / (maxLevel - 1);
-  const targetY   = baseY + step * (level - 1);
-  const duration  = (level === maxLevel ? 2 : 1) + 's';
-  el.style.transition = 'top ' + duration + ' ease';
+  const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+  const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
+  let targetY = rawStartY + fullStep * (level - 1);
+  // if final, snap to rawEndY and adjust left 3px left of flag
+  if (level >= maxLevel) {
+    targetY = rawEndY;
+    const leftX = flagRect.left - 3 - el.offsetWidth/2;
+    el.style.transition = 'top 2s ease, left 2s ease';
+    el.style.left = leftX + 'px';
+  } else {
+    el.style.transition = 'top 1s ease';
+    // keep CSS centering for left
+  }
   el.style.top = Math.round(targetY) + 'px';
 }
 
