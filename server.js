@@ -48,6 +48,7 @@ app.post('/evergameadmin865/start', (req, res) => {
   }
   setTimeout(() => {
     io.emit('countdown', 0);
+      // initial circles before first question
       io.emit('playerList', Object.values(players).map(p=>({nickname:p.nickname, level:p.level, color:p.color})));
     Object.keys(players).forEach(id => sendQuestion(id));
   }, 6000);
@@ -110,13 +111,8 @@ io.on('connection', socket => {
 // Helpers
 function sendQuestion(id) {
   const p = players[id];
-  let lvl = p.level;
-  let pool = questions.filter(q => q.order === lvl);
-  while (pool.length === 0 && lvl > 1) {
-    lvl--;
-    pool = questions.filter(q => q.order === lvl);
-  }
-  if (pool.length === 0) return;
+  const pool = questions.filter(q => q.order === p.level);
+  if (!pool.length) return;
   const q = { ...pool[Math.floor(Math.random() * pool.length)] };
   p.current = q;
   io.to(id).emit('question', q);
