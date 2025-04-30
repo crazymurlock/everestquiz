@@ -25,6 +25,18 @@ const maxLevel = 5;
 // animateCircle: move from 2px above question box to top center of screen
 
 
+function animateCircle(el) {
+  if (!el._beamStartY || !el._beamEndY || !el._beamEndX) return;
+  const level = el._level;
+  const total = maxLevel - 1;
+  const progress = Math.min(level - 1, total) / total;
+  const targetX = el._beamEndX;
+  const targetY = el._beamStartY + (el._beamEndY - el._beamStartY) * progress;
+  const duration = (level === maxLevel ? 2 : 1) + 's';
+  el.style.transition = `top ${duration} ease, left ${duration} ease`;
+  el.style.left = `${targetX}px`;
+  el.style.top = `${targetY}px`;
+}
 
 
 
@@ -93,7 +105,40 @@ socket.on('answerResult', res => {
 });
 
 // playerList => circles
-
+socket.on('playerList', list => {
+  list.forEach(p => {
+    let el = circles[p.nickname];
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'circle' + (p.nickname===self?' self':'');
+      el.style.position = 'absolute';
+      el.style.background = p.color;
+      // label
+      const lbl = document.createElement('div');
+      lbl.className='circle-label'+(p.nickname===self?' self':'');
+      lbl.textContent = p.nickname.substring(0,10);
+      el.append(lbl);
+      // letter
+      const lt = document.createElement('div');
+      lt.className='circle-letter';
+      lt.textContent=p.nickname.charAt(0).toUpperCase();
+      el.append(lt);
+      // start coords
+      const qRect=questionDiv.getBoundingClientRect();
+      const startX = window.innerWidth/2 - el.offsetWidth/2;
+      const startY = qRect.top - el.offsetHeight - 2;
+      el._startX = startX;
+      el._startY = startY;
+      el._level = p.level;
+      el.style.left = startX+'px';
+      el.style.top = startY+'px';
+      circles[p.nickname]=el;
+      playersContainer.append(el);
+    } else {
+      el._level = p.level;
+    }
+    animateCircle(el);
+  });
 });
 
 // gameOver
@@ -110,54 +155,4 @@ socket.on('gameOver', data => {
     });
     confetti();
   },3000);
-});
-
-function animateCircle(el) {
-  const level = el._level;
-  const total = maxLevel;
-  const verticalGap = (window.innerHeight - 100) / total;
-  const targetY = window.innerHeight - 100 - verticalGap * level;
-
-  const spread = 100 + (window.innerWidth - 200) * 0.6;
-  const offsetX = (el._id % 20) * (spread / 20) + 100;
-
-  const duration = '1s';
-  el.style.transition = `top ${duration} ease, left ${duration} ease`;
-  el.style.left = `${offsetX}px`;
-  el.style.top = `${Math.round(targetY)}px`;
-}
-
-socket.on('playerList', list => {
-  const container = document.getElementById('playersContainer');
-  const baseY = window.innerHeight - 100;
-
-  list.forEach((p, index) => {
-    let el = circles[p.nickname];
-    if (!el) {
-      el = document.createElement('div');
-      el.className = 'circle' + (p.nickname === self ? ' self' : '');
-      el.style.position = 'absolute';
-      el.style.background = p.color;
-
-      const label = document.createElement('div');
-      label.className = 'circle-label' + (p.nickname === self ? ' self' : '');
-      label.textContent = p.nickname.substring(0, 10);
-      el.append(label);
-
-      const letter = document.createElement('div');
-      letter.className = 'circle-letter';
-      letter.textContent = p.nickname.charAt(0).toUpperCase();
-      el.append(letter);
-
-      el._id = index;
-      el.style.left = `${100 + (index % 20) * 30}px`;
-      el.style.top = `${baseY}px`;
-
-      circles[p.nickname] = el;
-      container.append(el);
-    }
-
-    el._level = p.level;
-    animateCircle(el);
-  });
 });
