@@ -1,85 +1,158 @@
 const socket = io();
 let self = '';
-const playersContainer = document.getElementById('playersContainer');
+const joinDiv = document.getElementById('join'),
+      lobbyDiv = document.getElementById('lobby'),
+      gameDiv  = document.getElementById('game'),
+      resultDiv= document.getElementById('result'),
+      cntOv    = document.getElementById('countdownOverlay'),
+      cntNum   = document.getElementById('cnt'),
+      lobbyPl  = document.getElementById('lobbyPlayers'),
+      track    = document.getElementById('track'),
+      flag     = document.getElementById('flag'),
+      playersContainer = document.getElementById('playersContainer'),
+      questionDiv = document.getElementById('question'),
+      joinBtn  = document.getElementById('joinBtn'),
+      nickIn   = document.getElementById('nick'),
+      qtext    = document.getElementById('qtext'),
+      optsDiv  = document.getElementById('opts'),
+      winnerText = document.getElementById('winnerText'),
+      resStats = document.getElementById('resStats');
+
 const circles = {};
-const MAX_LEVEL = 5;
+const maxLevel = 5;
 
-// Конфигурация позиционирования
-const MOUNTAIN = {
-  BASE_Y: window.innerHeight * 0.85,    // Основание горы
-  TOP_Y: window.innerHeight * 0.25,     // Вершина
-  MARGIN_X: 50                         // Отступы по бокам
-};
 
-function calculatePosition(player, index, totalPlayers) {
-  // Вертикальная позиция (прогресс к вершине)
-  const y = MOUNTAIN.BASE_Y - 
-    ((MOUNTAIN.BASE_Y - MOUNTAIN.TOP_Y) * (player.level / MAX_LEVEL));
-  
-  // Горизонтальная позиция (равномерное распределение)
-  const x = MOUNTAIN.MARGIN_X + 
-    ((window.innerWidth - 2 * MOUNTAIN.MARGIN_X) * index / Math.max(totalPlayers-1, 1));
-  
-  return {x, y};
+// animateCircle: move from 2px above question box to top center of screen
+
+
+function animateCircle(el) {
+  if (!el._beamStartY || !el._beamEndY || !el._beamEndX) return;
+  const level = el._level;
+  const total = maxLevel - 1;
+  const progress = Math.min(level - 1, total) / total;
+  const targetX = el._beamEndX;
+  const targetY = el._beamStartY + (el._beamEndY - el._beamStartY) * progress;
+  const duration = (level === maxLevel ? 2 : 1) + 's';
+  el.style.transition = `top ${duration} ease, left ${duration} ease`;
+  el.style.left = `${targetX}px`;
+  el.style.top = `${targetY}px`;
 }
 
-// Обработчик обновления игроков
-socket.on('playerList', players => {
-  // Сортируем по уровню и времени последнего ответа
-  const sorted = players.sort((a, b) => {
-    if (b.level === a.level) return a.lastAnswerTime - b.lastAnswerTime;
-    return b.level - a.level;
+
+
+// redirect if closed
+socket.on('gameStatus', data => {
+  if (!data.open) location = '/closed.html';
+});
+
+// join button
+joinBtn.onclick = () => {
+  const nick = nickIn.value.trim();
+  if (!nick) return;
+  self = nick;
+  socket.emit('join', nick);
+  joinDiv.classList.remove('visible');
+  lobbyDiv.classList.add('visible');
+};
+
+// lobby list
+socket.on('lobby', list => {
+  lobbyPl.innerHTML = '';
+  list.forEach(n => {
+    const d = document.createElement('div');
+    d.textContent = n;
+    lobbyPl.append(d);
   });
+});
 
-  // Обновляем кружки
-  sorted.forEach((player, index) => {
-    let circle = circles[player.nickname];
-    
-    // Создаем новый кружок
-    if (!circle) {
-      circle = document.createElement('div');
-      circle.className = `circle${player.nickname === self ? ' self' : ''}`;
-      circle.style.backgroundColor = player.color;
-      circle.style.position = 'absolute';
-      circle.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      
-      // Лейбл с ником
-      const label = document.createElement('div');
-      label.className = 'circle-label';
-      label.textContent = player.nickname.substring(0, 12);
-      
-      // Отображение уровня
-      const level = document.createElement('div');
-      level.className = 'circle-level';
-      level.textContent = player.level;
-      
-      circle.append(label, level);
-      playersContainer.appendChild(circle);
-      circles[player.nickname] = circle;
-    }
+// countdown
+socket.on('countdown', n => {
+  if (n>0) {
+    cntNum.textContent = n;
+    cntOv.classList.add('show');
+  } else {
+    cntOv.classList.remove('show');
+    lobbyDiv.classList.remove('visible');
+    gameDiv.classList.add('visible');
+    track.style.display = 'block';
+    flag.style.display  = 'block';
+    playersContainer.style.display = 'block';
+    questionDiv.style.display = 'block';
+  }
+});
 
-    // Позиционирование
-    const pos = calculatePosition(player, index, sorted.length);
-    circle.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-    circle.querySelector('.circle-level').textContent = player.level;
+// question display
+socket.on('question', q => {
+  qtext.textContent = q.question;
+  optsDiv.innerHTML = '';
+  q.options.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className='option-btn';
+    btn.textContent=opt;
+    btn.onclick = () => socket.emit('answer', i);
+    optsDiv.append(btn);
+  });
+});
 
-    // Стили для текущего игрока
-    if (player.nickname === self) {
-      circle.style.zIndex = 1000;
-      circle.style.width = '44px';
-      circle.style.height = '44px';
+// answer result
+socket.on('answerResult', res => {
+  Array.from(optsDiv.children).forEach((b,i)=>{
+    if (i===res.correctIndex) b.classList.add('correct');
+    else if (!res.correct) b.classList.add('wrong');
+    b.disabled = true;
+  });
+  setTimeout(()=>optsDiv.innerHTML='',800);
+});
+
+// playerList => circles
+socket.on('playerList', list => {
+  list.forEach(p => {
+    let el = circles[p.nickname];
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'circle' + (p.nickname===self?' self':'');
+      el.style.position = 'absolute';
+      el.style.background = p.color;
+      // label
+      const lbl = document.createElement('div');
+      lbl.className='circle-label'+(p.nickname===self?' self':'');
+      lbl.textContent = p.nickname.substring(0,10);
+      el.append(lbl);
+      // letter
+      const lt = document.createElement('div');
+      lt.className='circle-letter';
+      lt.textContent=p.nickname.charAt(0).toUpperCase();
+      el.append(lt);
+      // start coords
+      const qRect=questionDiv.getBoundingClientRect();
+      const startX = window.innerWidth/2 - el.offsetWidth/2;
+      const startY = qRect.top - el.offsetHeight - 2;
+      el._startX = startX;
+      el._startY = startY;
+      el._level = p.level;
+      el.style.left = startX+'px';
+      el.style.top = startY+'px';
+      circles[p.nickname]=el;
+      playersContainer.append(el);
     } else {
-      circle.style.zIndex = 500 - index;
-      circle.style.width = '36px';
-      circle.style.height = '36px';
+      el._level = p.level;
     }
+    animateCircle(el);
   });
+});
 
-  // Удаляем отсутствующих игроков
-  Object.keys(circles).forEach(name => {
-    if (!sorted.find(p => p.nickname === name)) {
-      circles[name].remove();
-      delete circles[name];
-    }
-  });
+// gameOver
+socket.on('gameOver', data => {
+  setTimeout(()=>{
+    gameDiv.classList.remove('visible');
+    resultDiv.classList.add('visible');
+    winnerText.textContent=`🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time/1000)}с`;
+    resStats.innerHTML='';
+    data.stats.forEach(p=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time/1000)}</td>`;
+      resStats.append(tr);
+    });
+    confetti();
+  },3000);
 });
