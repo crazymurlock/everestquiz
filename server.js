@@ -53,6 +53,26 @@ app.post('/evergameadmin865/start', (req, res) => {
   res.send({});
 });
 
+app.post('/evergameadmin865/reset', (req, res) => {
+  // reset levels and correct, restart timer
+  Object.values(players).forEach(p => {
+    p.level = 1;
+    p.correct = 0;
+    p.startTime = Date.now();
+  });
+  // notify clients of reset
+  io.emit('playerList', Object.values(players).map(p=>({nickname:p.nickname, level:p.level, color:p.color})));
+  // restart game with countdown
+  for(let i=5;i>=1;i--){
+    setTimeout(()=> io.emit('countdown', i), (6-i)*1000);
+  }
+  setTimeout(()=>{
+    io.emit('countdown', 0);
+    Object.keys(players).forEach(id => sendQuestion(id));
+  }, 6000);
+  res.send({});
+});
+
 // Pages
 app.get('/', (req, res) => {
   if (!gameOpen) return res.redirect('/closed.html');

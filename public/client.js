@@ -20,37 +20,21 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
-// animateCircle: плавный подъём от вопроса к флагу (база уровень 4)
-function animateCircle(el, level) {
-  const qRect = questionDiv.getBoundingClientRect();
-  const flagRect = flag.getBoundingClientRect();
-  const rawStartY = qRect.top - el.offsetHeight - 1;
-  const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
-  // base at level4
-  const baseY = rawStartY + fullStep * 3;
-  // original step
-  let step = (rawEndY - baseY) / (maxLevel - 1);
-  // double the distance per level
-  step = step * 2;
-  let targetY = baseY + step * (level - 1);
-  // clamp final position
-  if (level >= maxLevel || targetY > rawEndY) {
-    targetY = rawEndY;
-  }
-  // apply transition and position
-  if (level >= maxLevel) {
-    el.style.transition = 'top 2s ease, left 2s ease';
-    // 3px left of flag center
-    const leftX = flagRect.left + flagRect.width/2 - el.offsetWidth/2 - 3;
-    el.style.left = leftX + 'px';
-  } else {
-    el.style.transition = 'top 1s ease';
-    // horizontal center by CSS
-  }
+// animateCircle: along individual beam from start to flag
+function animateCircle(el) {
+  const level = el._level;
+  const startX = el._startX, startY = el._startY;
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const endX = flagRect.left + flagRect.width/2 - el.offsetWidth/2;
+  const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+  const ratio = Math.min((level-1)/(maxLevel-1), 1);
+  const targetX = startX + (endX - startX)*ratio;
+  const targetY = startY + (endY - startY)*ratio;
+  const duration = (level >= maxLevel ? 2 : 1) + 's';
+  el.style.transition = `top ${duration} ease, left ${duration} ease`;
+  el.style.left = Math.round(targetX) + 'px';
   el.style.top = Math.round(targetY) + 'px';
 }
-
 
 // Handle gameStatus
 socket.on('gameStatus', data => {
@@ -117,29 +101,42 @@ socket.on('answerResult', res => {
 });
 
 // PlayerList
+
 socket.on('playerList', list => {
-  if (!gameDiv.classList.contains('visible')) return;
+  // ensure gameDiv visible or initial after countdown
+  // render or update circles
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
+      // create container div
       el = document.createElement('div');
-      el.className = 'circle' + (p.nickname === self ? ' self' : '');
-      el.textContent = p.nickname.charAt(0).toUpperCase();
-      el.style.background = p.color;
+      el.className = 'circle';
+      // label
+      const label = document.createElement('div');
+      label.className = 'player-label' + (p.nickname===self?' self':'');
+      label.textContent = p.nickname;
+      el.append(label);
+      // style circle
       el.style.position = 'absolute';
-      const qRect = questionDiv.getBoundingClientRect();
-      const flagRect = flag.getBoundingClientRect();
+      // compute start coords
+      const qRect = document.getElementById('question').getBoundingClientRect();
       const rawStartY = qRect.top - el.offsetHeight - 1;
-      const rawEndY   = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-      const fullStep  = (rawEndY - rawStartY)/(maxLevel - 1);
-      const baseY     = rawStartY + fullStep * 3;
-      el.style.top = Math.round(baseY) + 'px';
-      const trackRect = track.getBoundingClientRect();
-      playersContainer.append(el);
+      const rawStartX = qRect.left + Math.random()*(qRect.width - el.offsetWidth);
+      el._startX = rawStartX;
+      el._startY = rawStartY;
+      el._level = p.level;
+      el.style.left = Math.round(rawStartX) + 'px';
+      el.style.top = Math.round(rawStartY) + 'px';
+      el.style.background = p.color;
       circles[p.nickname] = el;
+      document.getElementById('playersContainer').append(el);
+    } else {
+      el._level = p.level;
     }
-    animateCircle(el, p.level);
+    animateCircle(el);
   });
+});
+
 });
 
 // GameOver
