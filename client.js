@@ -112,7 +112,6 @@ socket.on('gameOver', data => {
   },3000);
 });
 
-
 function animateCircle(el) {
   const level = el._level;
   const total = maxLevel;
@@ -130,8 +129,7 @@ function animateCircle(el) {
 
 socket.on('playerList', list => {
   const container = document.getElementById('playersContainer');
-  const qRect = document.getElementById('question').getBoundingClientRect();
-  const baseY = qRect.top - 40;
+  const baseY = window.innerHeight - 100;
 
   list.forEach((p, index) => {
     let el = circles[p.nickname];
@@ -153,7 +151,7 @@ socket.on('playerList', list => {
 
       el._id = index;
       el.style.left = `${100 + (index % 20) * 30}px`;
-      el.style.top = `${window.innerHeight - 100}px`;
+      el.style.top = `${baseY}px`;
 
       circles[p.nickname] = el;
       container.append(el);
