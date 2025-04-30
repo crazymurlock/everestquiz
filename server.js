@@ -22,7 +22,7 @@ function randomColor() {
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static('public', { index: false }));
 
 // Admin endpoints
 app.get('/evergameadmin865', (req, res) => {
