@@ -20,6 +20,22 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
+// animateCircle: плавный подъём от окна вопроса к флагу (база уровень 4)
+function animateCircle(el, level) {
+  const qRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const rawStartY = qRect.top - el.offsetHeight - 1;
+  const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+  const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
+  const baseY = rawStartY + fullStep * 3;
+  const step = (rawEndY - baseY) / (maxLevel - 1);
+  const targetY = baseY + step * (level - 1);
+  const duration = (level === maxLevel ? 2 : 1) + 's';
+  el.style.transition = 'top ' + duration + ' ease';
+  el.style.top = `${Math.round(targetY)}px`;
+}
+
+
 // animateCircle: плавный подъём от вопроса к флагу (база уровень 4)
 function animateCircle(el, level) {
   const qRect = questionDiv.getBoundingClientRect();
@@ -72,7 +88,9 @@ socket.on('countdown', n => {
     track.style.display = 'block';
     flag.style.display  = 'block';
     playersContainer.style.display = 'block';
-    questionDiv.style.display = 'block';
+    document.getElementById('question').style.display = 'block';
+    // request initial positions via server emit
+    // server emits playerList already
   }
 });
 
@@ -100,9 +118,7 @@ socket.on('answerResult', res => {
 });
 
 // PlayerList
-socket.on('playerList', list => {
-  if (!gameDiv.classList.contains('visible')) return;
-  list.forEach(p => {
+socket.on('playerList', list => { list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
       el = document.createElement('div');
@@ -118,11 +134,8 @@ socket.on('playerList', list => {
       const baseY     = rawStartY + fullStep * 3;
       el.style.top = Math.round(baseY) + 'px';
       const trackRect = track.getBoundingClientRect();
+      el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
       playersContainer.append(el);
-      // center horizontally under track
-      const trackRect = track.getBoundingClientRect();
-      const centerX = trackRect.left + trackRect.width/2 - el.offsetWidth/2;
-      el.style.left = centerX + 'px';
       circles[p.nickname] = el;
     }
     animateCircle(el, p.level);
