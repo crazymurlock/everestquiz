@@ -117,6 +117,11 @@ socket.on('playerList', list => {
       label.className = 'player-label' + (p.nickname === self ? ' self' : '');
       label.textContent = p.nickname;
       el.append(label);
+      // add letter inside
+      const letter = document.createElement('div');
+      letter.className = 'circle-letter';
+      letter.textContent = p.nickname.charAt(0).toUpperCase();
+      el.append(letter);
       // compute start coords
       const qRect = questionDiv.getBoundingClientRect();
       const startX = qRect.left + Math.random()*(qRect.width - el.offsetWidth);
