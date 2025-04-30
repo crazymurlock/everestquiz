@@ -20,6 +20,22 @@ const joinDiv = document.getElementById('join'),
 
 const circles = {}, maxLevel = 5;
 
+// animateCircle: плавный подъём от окна вопроса к флагу (база уровень 4)
+function animateCircle(el, level) {
+  const qRect = document.getElementById('question').getBoundingClientRect();
+  const flagRect = document.getElementById('flag').getBoundingClientRect();
+  const rawStartY = qRect.top - el.offsetHeight - 1;
+  const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+  const fullStep = (rawEndY - rawStartY) / (maxLevel - 1);
+  const baseY = rawStartY + fullStep * 3;
+  const step = (rawEndY - baseY) / (maxLevel - 1);
+  const targetY = baseY + step * (level - 1);
+  const duration = (level === maxLevel ? 2 : 1) + 's';
+  el.style.transition = 'top ' + duration + ' ease';
+  el.style.top = Math.round(targetY) + 'px';
+}
+
+
 // animateCircle: плавный подъём от вопроса к флагу (база уровень 4)
 function animateCircle(el, level) {
   const qRect = questionDiv.getBoundingClientRect();
@@ -72,7 +88,7 @@ socket.on('countdown', n => {
     track.style.display = 'block';
     flag.style.display  = 'block';
     playersContainer.style.display = 'block';
-    questionDiv.style.display = 'block';
+    document.getElementById('question').style.display = 'block';
   }
 });
 
@@ -119,6 +135,14 @@ socket.on('playerList', list => {
       el.style.top = Math.round(baseY) + 'px';
       const trackRect = track.getBoundingClientRect();
       el.style.left = (trackRect.left + trackRect.width/2 - el.offsetWidth/2) + 'px';
+      // initial база уровень 4
+      const qRect = document.getElementById('question').getBoundingClientRect();
+      const flagRect = document.getElementById('flag').getBoundingClientRect();
+      const rawStartY = qRect.top - el.offsetHeight - 1;
+      const rawEndY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
+      const fullStep = (rawEndY - rawStartY)/(maxLevel - 1);
+      const baseY = rawStartY + fullStep * 3;
+      el.style.top = Math.round(baseY) + 'px';
       playersContainer.append(el);
       circles[p.nickname] = el;
     }
