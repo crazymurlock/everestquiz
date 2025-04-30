@@ -139,7 +139,6 @@ socket.on('playerList', list => {
   });
 });
 
-});
 
 // Game over
 socket.on('gameOver', data => {
