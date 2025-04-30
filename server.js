@@ -64,14 +64,9 @@ io.on('connection', socket => {
   socket.emit('gameStatus', { open: gameOpen });
 
   socket.on('join', nick => {
-    if (!gameOpen) return;
+    if (!gameOpen || gameStarted) return;
     players[socket.id] = {
-    nickname: nick,
-    level: 1,
-    correct: 0,
-    color: randomColor(),
-    startTime: Date.now(),
-    lastAnswerTime: Date.now()
+      nickname: nick,
       level: 1,
       correct: 0,
       color: randomColor(),
@@ -81,41 +76,25 @@ io.on('connection', socket => {
     io.emit('playerList', Object.values(players).map(p => ({
       nickname: p.nickname, level: p.level, color: p.color
     })));
-    if (gameStarted) sendQuestion(socket.id);
   });
 
   socket.on('answer', idx => {
-  const p = players[socket.id];
-  if (!p || !gameStarted) return;
-  const q = p.current;
-  const correct = idx === q.answerIndex;
-
-  // Добавляем время ответа для сортировки
-  p.lastAnswerTime = Date.now();
-
-  if (correct) {
-    p.level = Math.min(p.level + 1, 5); // Ограничиваем максимум 5 уровнем
-    p.correct++;
-  }
-
-  // Отправляем клиенту результат
-  socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
-
-  // Форсируем немедленное обновление для всех клиентов
-  io.emit('playerList', Object.values(players).map(p => ({
-    nickname: p.nickname,
-    level: p.level,
-    color: p.color,
-    startTime: p.startTime,
-    lastAnswerTime: p.lastAnswerTime
-  })));
-    if (gameStarted) sendQuestion(socket.id);
-
-  setTimeout(() => {
-    if (p.level > 5) endGame();
-    else sendQuestion(socket.id);
-  }, 800);
-});
+    const p = players[socket.id];
+    if (!p || !gameStarted) return;
+    const q = p.current;
+    const correct = idx === q.answerIndex;
+    if (correct) {
+      p.level++;
+      p.correct++;
+    }
+    socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
+    io.emit('playerList', Object.values(players).map(p => ({
+      nickname: p.nickname, level: p.level, color: p.color
+    })));
+    setTimeout(() => {
+      if (p.level > 5) endGame();
+      else sendQuestion(socket.id);
+    }, 800);
   });
 
   socket.on('disconnect', () => {
@@ -124,14 +103,12 @@ io.on('connection', socket => {
     io.emit('playerList', Object.values(players).map(p => ({
       nickname: p.nickname, level: p.level, color: p.color
     })));
-    if (gameStarted) sendQuestion(socket.id);
   });
 });
 
 // Helpers
 function sendQuestion(id) {
   const p = players[id];
-  if (!p || !questions || !questions.length) return;
   const pool = questions.filter(q => q.order === p.level);
   if (!pool.length) return;
   const q = { ...pool[Math.floor(Math.random() * pool.length)] };
@@ -140,7 +117,6 @@ function sendQuestion(id) {
 }
 
 function endGame() {
-  if (!Object.keys(players).length) return;
   const stats = Object.values(players).map(p => ({
     nickname: p.nickname, correct: p.correct, time: Date.now() - p.startTime
   }));
