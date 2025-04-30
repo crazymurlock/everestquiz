@@ -9,10 +9,7 @@ const resultDiv = document.getElementById('result');
 const cntOv = document.getElementById('countdownOverlay');
 const cntNum = document.getElementById('cnt');
 const lobbyPl = document.getElementById('lobbyPlayers');
-// const track = document.getElementById('track'); // Removed
-// const flag = document.getElementById('flag');   // Removed
-// const playersContainer = document.getElementById('playersContainer'); // Removed
-const mountainContainer = document.getElementById('mountain-progress-container'); // New container
+const mountainContainer = document.getElementById('mountain-progress-container'); // Reference to the mountain container
 const questionDiv = document.getElementById('question');
 const joinBtn = document.getElementById('joinBtn');
 const nickIn = document.getElementById('nick');
@@ -22,19 +19,17 @@ const winnerText = document.getElementById('winnerText');
 const resStats = document.getElementById('resStats');
 
 // --- State ---
-// const circles = {}; // Removed - Handled by ProgressVisualizer
-// const maxLevel = 5; // Removed - Handled by ProgressVisualizer
 let visualizerInitialized = false; // Flag to track if visualizer is ready
 
 // --- Progress Visualizer Module ---
 const ProgressVisualizer = (() => {
     // --- Settings ---
     const AVATAR_SIZE = 25;
-    const LEVELS = 5; // Corresponds to maxLevel
+    const LEVELS = 5;
     const VERTICAL_PADDING = AVATAR_SIZE;
     const HORIZONTAL_PADDING = AVATAR_SIZE / 2;
     const MAX_SPREAD_FACTOR = 0.8;
-    const JITTER_AMOUNT = 4; // Reduced jitter slightly
+    const JITTER_AMOUNT = 4;
 
     // --- State ---
     let containerElement = null;
@@ -49,16 +44,14 @@ const ProgressVisualizer = (() => {
     function createAvatarElement(playerData) {
         const avatar = document.createElement('div');
         avatar.classList.add('player-avatar');
-        avatar.id = `avatar-${playerData.id}`;
+        avatar.id = `avatar-${playerData.id}`; // Use consistent ID (nickname)
         avatar.dataset.playerId = playerData.id;
         avatar.title = playerData.name || playerData.id;
 
-        // Use player color if provided
         if (playerData.color) {
              avatar.style.backgroundColor = playerData.color;
         }
 
-        // Add image or initials
         if (playerData.avatarUrl) {
             const img = document.createElement('img');
             img.src = playerData.avatarUrl;
@@ -69,7 +62,6 @@ const ProgressVisualizer = (() => {
             avatar.textContent = name.substring(0, 2).toUpperCase();
         }
 
-        // Highlight current player
         if (playerData.id === currentPlayerId) {
             avatar.classList.add('current-player');
         }
@@ -77,15 +69,16 @@ const ProgressVisualizer = (() => {
     }
 
     function calculateTargetPosition(playerId, level) {
-        // Ensure container dimensions are valid
-        if (containerHeight <= VERTICAL_PADDING * 2 || containerWidth <= HORIZONTAL_PADDING * 2) {
-            console.warn("Container dimensions too small for positioning.");
-            return { top: containerHeight / 2 , left: containerWidth / 2 }; // Default to center
+        // Ensure container dimensions are valid and calculated
+         if (!containerElement || containerHeight <= VERTICAL_PADDING * 2 || containerWidth <= HORIZONTAL_PADDING * 2) {
+            console.warn("Cannot calculate position: Container dimensions invalid or not ready.", { containerHeight, containerWidth });
+            // Return a default position (e.g., bottom center) if calculation fails
+             return { top: containerHeight - VERTICAL_PADDING , left: containerWidth / 2 };
         }
 
         // 1. Calculate Vertical position (Y)
         const availableHeight = containerHeight - VERTICAL_PADDING * 2;
-        verticalStep = availableHeight / LEVELS; // Calculate step dynamically
+        verticalStep = availableHeight / LEVELS;
         const y = containerHeight - VERTICAL_PADDING - (level * verticalStep);
 
         // 2. Calculate Horizontal position (X)
@@ -97,8 +90,7 @@ const ProgressVisualizer = (() => {
 
         if (playerCount > 1) {
             const maxSpreadWidth = containerWidth * MAX_SPREAD_FACTOR - HORIZONTAL_PADDING * 2;
-            // Calculate spacing, ensure it's not negative if avatars are large
-            const requiredSpacing = AVATAR_SIZE * 1.5; // Ideal space per avatar
+            const requiredSpacing = AVATAR_SIZE * 1.5;
             const totalSpread = Math.min(maxSpreadWidth, (playerCount - 1) * requiredSpacing);
             const startX = (containerWidth - totalSpread) / 2;
             const stepX = playerCount > 1 ? totalSpread / (playerCount - 1) : 0;
@@ -106,8 +98,8 @@ const ProgressVisualizer = (() => {
             if (playerIndex !== -1) {
                  x = startX + (playerIndex * stepX);
             } else {
-                 console.warn(`Player ${playerId} not found in level ${level} distribution.`);
-                 x = containerWidth / 2; // Fallback
+                 console.warn(`Player ${playerId} not found in level ${level} distribution during position calculation.`);
+                 x = containerWidth / 2;
             }
         }
 
@@ -120,11 +112,17 @@ const ProgressVisualizer = (() => {
         const maxX = containerWidth - HORIZONTAL_PADDING - AVATAR_SIZE / 2;
         x = Math.max(minX, Math.min(maxX, x));
 
-        return { top: Math.max(VERTICAL_PADDING, Math.min(containerHeight - VERTICAL_PADDING, y)), left: x }; // Clamp Y too
+        // Clamp Y within bounds too
+        const minY = VERTICAL_PADDING;
+        const maxY = containerHeight - VERTICAL_PADDING;
+        const clampedY = Math.max(minY, Math.min(maxY, y));
+
+        return { top: clampedY, left: x };
     }
 
     function updateElementPosition(element, top, left) {
         if (element) {
+            // console.log(`  Moving ${element.dataset.playerId} to top: ${top.toFixed(1)}, left: ${left.toFixed(1)}`);
             element.style.left = `${left}px`;
             element.style.top = `${top}px`;
         } else {
@@ -134,41 +132,45 @@ const ProgressVisualizer = (() => {
 
     function recalculateLevelLayout(level) {
         const playersOnThisLevel = levelsDistribution[level] || [];
+        // console.log(`Recalculating layout for level ${level} with ${playersOnThisLevel.length} players.`);
         playersOnThisLevel.forEach(pid => {
             const state = playerStates[pid];
             if (state && state.element) {
                 const { top, left } = calculateTargetPosition(pid, level);
-                // Only update if position actually changes significantly (optimization)
-                if (Math.abs(state.x - left) > 1 || Math.abs(state.y - top) > 1) {
-                    state.x = left;
-                    state.y = top;
-                    updateElementPosition(state.element, top, left);
-                }
+                // Update stored coords and element style
+                state.x = left;
+                state.y = top;
+                updateElementPosition(state.element, top, left);
             }
         });
     }
 
     // --- Public methods ---
     function init(containerId, initialPlayersData = [], currentUserId = null) {
+        console.log("ProgressVisualizer: Attempting initialization...");
         containerElement = document.getElementById(containerId);
         if (!containerElement) {
-            console.error(`ProgressVisualizer: Container with id "${containerId}" not found.`);
+            console.error(`ProgressVisualizer init FAIL: Container #${containerId} not found.`);
             return false; // Indicate failure
         }
 
-        // Get dimensions AFTER the element is visible
+        // Get dimensions AFTER the element should be visible
         containerWidth = containerElement.offsetWidth;
         containerHeight = containerElement.offsetHeight;
+        currentPlayerId = currentUserId; // Store current user ID
 
-        // Basic check for valid dimensions
+         // Check for valid dimensions
         if (containerWidth <= 0 || containerHeight <= 0) {
-             console.error("ProgressVisualizer: Container has zero dimensions. Is it visible?");
-            // Try again shortly after? Or rely on playerList to trigger real init.
+             console.error(`ProgressVisualizer init FAIL: Container #${containerId} has zero dimensions. Width: ${containerWidth}, Height: ${containerHeight}. Is it visible?`);
+             // Reset dimensions to allow recalculation later if needed
+             containerWidth = 0;
+             containerHeight = 0;
              return false; // Indicate failure
         }
+        console.log(`ProgressVisualizer init: Container dimensions ok (${containerWidth}x${containerHeight}). Current player: ${currentPlayerId}`);
 
 
-        currentPlayerId = currentUserId;
+        // Reset states
         playerStates = {};
         levelsDistribution = {};
         for (let i = 0; i <= LEVELS; i++) {
@@ -177,22 +179,21 @@ const ProgressVisualizer = (() => {
         containerElement.innerHTML = ''; // Clear previous avatars
 
         initialPlayersData.forEach(playerData => {
-             // Use nickname as the ID
-            const playerId = playerData.nickname;
-            if (!playerId) {
-                console.warn("Player data missing nickname:", playerData);
-                return; // Skip players without ID
+             const playerId = playerData.nickname; // Assuming nickname is the unique ID
+             if (!playerId) {
+                console.warn("Skipping player data missing nickname:", playerData);
+                return;
             }
-            const element = createAvatarElement({ ...playerData, id: playerId }); // Pass nickname as id
-            const initialLevel = playerData.level || 0; // Use provided level or default to 0
+            const element = createAvatarElement({ ...playerData, id: playerId });
+            const initialLevel = playerData.level || 0;
 
             const initialState = {
                 ...playerData,
-                id: playerId, // Ensure id is set
+                id: playerId,
                 level: initialLevel,
                 element: element,
-                x: containerWidth / 2, // Initial rough position
-                y: containerHeight - VERTICAL_PADDING,
+                x: -999, // Mark as not yet calculated
+                y: -999,
             };
             playerStates[playerId] = initialState;
             if (!levelsDistribution[initialLevel]) levelsDistribution[initialLevel] = [];
@@ -200,26 +201,24 @@ const ProgressVisualizer = (() => {
             containerElement.appendChild(element);
         });
 
-        // Calculate initial layout for all levels where players exist
-        Object.keys(levelsDistribution).forEach(level => {
+        // Calculate initial layout for all levels *after* adding all elements
+        console.log("ProgressVisualizer init: Calculating initial layout...");
+        Object.keys(levelsDistribution).forEach(levelStr => {
+            const level = parseInt(levelStr, 10);
             if (levelsDistribution[level].length > 0) {
-                recalculateLevelLayout(parseInt(level, 10));
+                recalculateLevelLayout(level);
             }
         });
 
-        console.log(`ProgressVisualizer initialized with ${initialPlayersData.length} players.`);
+        console.log(`ProgressVisualizer init SUCCESS: Initialized with ${initialPlayersData.length} players.`);
         return true; // Indicate success
     }
 
-    /**
-     * Updates player progress to a specific level
-     * @param {string} playerId - ID of the player (nickname)
-     * @param {number} newLevel - The target level (0-5)
-     */
     function updatePlayerProgress(playerId, newLevel) {
+        console.log(`ProgressVisualizer: Update requested for ${playerId} to level ${newLevel}`);
         const state = playerStates[playerId];
         if (!state) {
-            console.warn(`ProgressVisualizer: Player "${playerId}" not found for update.`);
+            console.warn(`ProgressVisualizer update FAIL: Player "${playerId}" not found.`);
             return;
         }
 
@@ -227,8 +226,10 @@ const ProgressVisualizer = (() => {
         const currentLevel = state.level;
 
         if (newLevel === currentLevel) {
-            return; // No change
+             console.log(`ProgressVisualizer: No level change for ${playerId} (already at ${currentLevel}).`);
+            return; // No change needed
         }
+         console.log(`  Player ${playerId}: Moving from ${currentLevel} to ${newLevel}`);
 
         // 1. Update state level
         state.level = newLevel;
@@ -238,35 +239,44 @@ const ProgressVisualizer = (() => {
             const index = levelsDistribution[currentLevel].indexOf(playerId);
             if (index > -1) {
                 levelsDistribution[currentLevel].splice(index, 1);
+                 console.log(`  Removed ${playerId} from level ${currentLevel} distribution.`);
             }
         }
         if (!levelsDistribution[newLevel]) {
             levelsDistribution[newLevel] = [];
         }
-        // Avoid adding duplicates if multiple updates arrive quickly
         if (!levelsDistribution[newLevel].includes(playerId)) {
              levelsDistribution[newLevel].push(playerId);
+             console.log(`  Added ${playerId} to level ${newLevel} distribution.`);
         }
 
 
-        // 3. Recalculate layout for the OLD level
-        if (levelsDistribution[currentLevel]) {
+        // 3. Recalculate layout for the OLD level (as player left)
+        if (levelsDistribution[currentLevel] && levelsDistribution[currentLevel].length > 0) {
+             console.log(`  Recalculating OLD level ${currentLevel} layout.`);
              recalculateLevelLayout(currentLevel);
+        } else {
+             console.log(`  No recalculation needed for empty OLD level ${currentLevel}.`);
         }
 
-        // 4. Calculate target position for the updated player *immediately*
+        // 4. Calculate *target* position for the updated player first
+         console.log(`  Calculating TARGET position for ${playerId} at level ${newLevel}.`);
         const { top, left } = calculateTargetPosition(playerId, newLevel);
+        // Update state coords BEFORE moving element for consistency
         state.x = left;
         state.y = top;
+        // Move the element (CSS transition handles the animation)
         updateElementPosition(state.element, top, left);
 
-        // 5. Recalculate layout for the NEW level after a short delay (for smoother distribution)
-        //    This helps if multiple players arrive at the same level nearly simultaneously.
-        setTimeout(() => {
-             recalculateLevelLayout(newLevel);
-        }, 100);
 
-        console.log(`Player ${playerId} moved to level ${newLevel}`);
+        // 5. Recalculate layout for the NEW level (as player arrived)
+        //    This adjusts positions of others already there. Delay slightly?
+        console.log(`  Recalculating NEW level ${newLevel} layout.`);
+        // No delay seems necessary now, let's recalculate immediately
+         recalculateLevelLayout(newLevel);
+
+
+        console.log(`  Player ${playerId} update processed.`);
     }
 
     function getPlayerState(playerId) {
@@ -276,18 +286,24 @@ const ProgressVisualizer = (() => {
     function highlightWinner(winnerId) {
         const state = playerStates[winnerId];
         if (state && state.element) {
-            state.element.classList.add('winner'); // Add class for CSS styling/animation
+            state.element.classList.add('winner');
             console.log(`Highlighting winner: ${winnerId}`);
         }
     }
 
-     // Add a function to add players dynamically if needed later
      function addPlayer(playerData) {
          const playerId = playerData.nickname;
+          console.log(`ProgressVisualizer: Adding player ${playerId}`);
          if (!playerId || playerStates[playerId]) {
-             // Already exists or invalid data
+             console.warn(`  Skipping add: Player ${playerId} already exists or has no ID.`);
              return;
          }
+          // Check if container is ready before adding elements
+          if (!containerElement || containerWidth <= 0) {
+              console.warn(`  Skipping add: Container not ready for player ${playerId}`);
+              return;
+          }
+
           const element = createAvatarElement({ ...playerData, id: playerId });
           const initialLevel = playerData.level || 0;
           const initialState = {
@@ -295,15 +311,15 @@ const ProgressVisualizer = (() => {
               id: playerId,
               level: initialLevel,
               element: element,
-               // Calculate rough initial position based on level
-              x: containerWidth / 2, // Placeholder, recalculate soon
-              y: containerHeight - VERTICAL_PADDING - (initialLevel * verticalStep)
+              x: -999, // Mark as not calculated
+              y: -999,
           };
           playerStates[playerId] = initialState;
           if (!levelsDistribution[initialLevel]) levelsDistribution[initialLevel] = [];
           levelsDistribution[initialLevel].push(playerId);
           containerElement.appendChild(element);
           // Recalculate layout for the level this player joined
+           console.log(`  Recalculating layout for level ${initialLevel} after adding ${playerId}.`);
           recalculateLevelLayout(initialLevel);
      }
 
@@ -312,42 +328,38 @@ const ProgressVisualizer = (() => {
         updatePlayerProgress,
         getPlayerState,
         highlightWinner,
-        addPlayer // Expose addPlayer if dynamic joining is possible post-init
+        addPlayer
     };
 })();
 
 
 // --- Socket Event Handlers ---
 
-// Redirect if game is closed
 socket.on('gameStatus', data => {
     if (!data.open) location = '/closed.html';
 });
 
-// Join button click
 joinBtn.onclick = () => {
     const nick = nickIn.value.trim();
     if (!nick) return;
-    self = nick; // Store own nickname
+    self = nick;
     socket.emit('join', nick);
     joinDiv.classList.remove('visible');
     lobbyDiv.classList.add('visible');
 };
 
-// Update lobby player list
 socket.on('lobby', list => {
-    lobbyPl.innerHTML = ''; // Clear previous list
+    lobbyPl.innerHTML = '';
     list.forEach(n => {
         const d = document.createElement('div');
         d.textContent = n;
         if (n === self) {
-            d.style.fontWeight = 'bold'; // Highlight self in lobby
+            d.style.fontWeight = 'bold';
         }
         lobbyPl.append(d);
     });
 });
 
-// Handle countdown and game start
 socket.on('countdown', n => {
     if (n > 0) {
         cntNum.textContent = n;
@@ -356,115 +368,144 @@ socket.on('countdown', n => {
         cntOv.classList.remove('show');
         lobbyDiv.classList.remove('visible');
         gameDiv.classList.add('visible');
-        mountainContainer.style.display = 'block'; // Show the mountain viz container
-        questionDiv.style.display = 'block';     // Show the question area
-        // Initialization of visualizer will happen on first 'playerList' event
+        // Make sure containers are displayed *before* first playerList might arrive
+        mountainContainer.style.display = 'block';
+        questionDiv.style.display = 'block';
+        console.log("Game starting - showing mountain and question divs.");
+        // Reset visualizer state for new game
+        visualizerInitialized = false;
     }
 });
 
-// Display question and options
 socket.on('question', q => {
     qtext.textContent = q.question;
-    optsDiv.innerHTML = ''; // Clear previous options
+    optsDiv.innerHTML = '';
     q.options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.textContent = opt;
-        // Send answer index on click
         btn.onclick = () => {
              socket.emit('answer', i);
-             // Disable all buttons immediately after clicking one
              Array.from(optsDiv.children).forEach(b => b.disabled = true);
         };
         optsDiv.append(btn);
     });
 });
 
-// Show answer result (correct/wrong)
 socket.on('answerResult', res => {
     Array.from(optsDiv.children).forEach((b, i) => {
         if (i === res.correctIndex) {
             b.classList.add('correct');
-        } else if (i === res.chosenIndex && !res.correct) { // Highlight wrong choice
+        } else if (i === res.chosenIndex && !res.correct) { // Assuming server sends chosenIndex
              b.classList.add('wrong');
         }
-        b.disabled = true; // Ensure all are disabled
+         // Ensure *all* buttons are disabled regardless of correctness
+         b.disabled = true;
     });
-    // Optional: Clear buttons after a delay? Or wait for next question?
-    // setTimeout(() => optsDiv.innerHTML = '', 1500); // Example delay
+    // Maybe clear the result highlights after a short delay?
+    // setTimeout(() => {
+    //     Array.from(optsDiv.children).forEach(b => {
+    //         b.classList.remove('correct', 'wrong');
+    //     });
+    // }, 1500);
 });
 
-// Update player visualization based on server list
 socket.on('playerList', list => {
-    // Initialize visualizer on the first player list received *after* game start
-    if (!visualizerInitialized && gameDiv.classList.contains('visible')) {
-        // Pass the list and current user's nickname
-        visualizerInitialized = ProgressVisualizer.init('mountain-progress-container', list, self);
-        // If init failed (e.g., container not ready), retry on next update?
-         if (!visualizerInitialized) {
-            console.error("Visualizer failed to initialize. Retrying may be needed.");
-             return; // Don't proceed with updates if init failed
-         }
+    // console.log("Received playerList:", list); // DEBUG: Log received data
+
+    // Check if the game screen is visible before doing anything
+    if (!gameDiv.classList.contains('visible')) {
+        // console.log("Skipping playerList processing: game not visible.");
+        return;
     }
 
-    // If initialized, update positions
-    if (visualizerInitialized) {
-        list.forEach(p => {
-            const currentState = ProgressVisualizer.getPlayerState(p.nickname);
-            if (currentState) {
-                 // Update if level differs
-                if (currentState.level !== p.level) {
-                    ProgressVisualizer.updatePlayerProgress(p.nickname, p.level);
-                }
+    // Initialize visualizer on the first player list *after* game start
+    if (!visualizerInitialized) {
+        console.log("PlayerList received, attempting first-time initialization...");
+        // Use setTimeout to allow DOM to update (mountain container visibility)
+        setTimeout(() => {
+            // Pass the list and current user's nickname
+             visualizerInitialized = ProgressVisualizer.init('mountain-progress-container', list, self);
+             if (!visualizerInitialized) {
+                 console.error("Visualizer initialization failed inside setTimeout. Check container visibility and dimensions.");
             } else {
-                 // Player joined mid-game? Add them dynamically.
-                 console.log(`New player detected mid-game: ${p.nickname}`);
-                 ProgressVisualizer.addPlayer(p);
-                 // Might need a slight delay before update if addPlayer is async or needs layout recalc
-                 setTimeout(() => ProgressVisualizer.updatePlayerProgress(p.nickname, p.level), 50);
+                 console.log("Visualizer initialized successfully via setTimeout.");
+                 // Process the list *again* now that it's initialized?
+                 // Or rely on the next playerList event. Let's process immediately:
+                 processPlayerListUpdates(list);
             }
-
-        });
+        }, 0); // Delay of 0ms pushes execution after current rendering cycle
+    } else {
+         // If already initialized, just process updates
+         processPlayerListUpdates(list);
     }
 });
 
-// Handle game over: show results, highlight winner
+// Helper function to process player list updates
+function processPlayerListUpdates(list) {
+     console.log("Processing player list updates...");
+     list.forEach(p => {
+         const playerId = p.nickname; // Assuming nickname is the unique ID
+         if (!playerId) {
+             console.warn("Skipping player update: Missing nickname in data", p);
+             return;
+         }
+
+         const currentState = ProgressVisualizer.getPlayerState(playerId);
+
+         if (currentState) {
+             // Player exists, check if level needs update
+             if (currentState.level !== p.level) {
+                 ProgressVisualizer.updatePlayerProgress(playerId, p.level);
+             } else {
+                  // Optional: Force recalculate position even if level same? Could help alignment.
+                  // ProgressVisualizer.recalculateLevelLayout(currentState.level);
+             }
+         } else {
+             // Player doesn't exist in visualizer yet (joined mid-game or init issue?)
+             console.log(`Player ${playerId} not found in visualizer, attempting to add.`);
+             ProgressVisualizer.addPlayer(p);
+              // It might take a moment for addPlayer to fully process,
+              // but updatePlayerProgress should handle the level update on next playerList event.
+         }
+     });
+     console.log("Finished processing player list updates.");
+}
+
+
 socket.on('gameOver', data => {
-     // Highlight winner immediately on the mountain
-    if (visualizerInitialized && data.winner) {
+     console.log("Game Over:", data);
+    if (visualizerInitialized && data.winner && data.winner.nickname) {
          ProgressVisualizer.highlightWinner(data.winner.nickname);
     }
 
-    // Delay before showing results screen
     setTimeout(() => {
         gameDiv.classList.remove('visible');
         resultDiv.classList.add('visible');
 
-        // Display winner text
         if (data.winner) {
              winnerText.textContent = `🏅 ${data.winner.nickname} — ${data.winner.correct} правильн. за ${Math.round(data.winner.time / 1000)}с`;
         } else {
-             winnerText.textContent = "Игра окончена!"; // Fallback if no winner data
+             winnerText.textContent = "Игра окончена!";
         }
 
-
-        // Populate results table
-        resStats.innerHTML = ''; // Clear previous stats
+        resStats.innerHTML = '';
+        data.stats.sort((a, b) => b.correct - a.correct || a.time - b.time); // Sort results
         data.stats.forEach(p => {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>${p.nickname}</td><td>${p.correct}</td><td>${Math.round(p.time / 1000)}</td>`;
              if(data.winner && p.nickname === data.winner.nickname) {
-                 tr.style.fontWeight = 'bold'; // Highlight winner row
+                 tr.style.fontWeight = 'bold';
+                 tr.style.backgroundColor = '#e8f5e9'; // Highlight winner row slightly
              }
             resStats.append(tr);
         });
 
-        // Confetti effect!
         confetti({
              particleCount: 150,
              spread: 90,
              origin: { y: 0.6 }
         });
 
-    }, 3000); // 3 second delay
+    }, 3000); // Delay before showing results
 });
