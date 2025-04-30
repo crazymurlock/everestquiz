@@ -79,22 +79,36 @@ io.on('connection', socket => {
   });
 
   socket.on('answer', idx => {
-    const p = players[socket.id];
-    if (!p || !gameStarted) return;
-    const q = p.current;
-    const correct = idx === q.answerIndex;
-    if (correct) {
-      p.level++;
-      p.correct++;
-    }
-    socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
-    io.emit('playerList', Object.values(players).map(p => ({
-      nickname: p.nickname, level: p.level, color: p.color
-    })));
-    setTimeout(() => {
-      if (p.level > 5) endGame();
-      else sendQuestion(socket.id);
-    }, 800);
+  const p = players[socket.id];
+  if (!p || !gameStarted) return;
+  const q = p.current;
+  const correct = idx === q.answerIndex;
+
+  // Добавляем время ответа для сортировки
+  p.lastAnswerTime = Date.now();
+
+  if (correct) {
+    p.level = Math.min(p.level + 1, 5); // Ограничиваем максимум 5 уровнем
+    p.correct++;
+  }
+
+  // Отправляем клиенту результат
+  socket.emit('answerResult', { correct, correctIndex: q.answerIndex });
+
+  // Форсируем немедленное обновление для всех клиентов
+  io.emit('playerList', Object.values(players).map(p => ({
+    nickname: p.nickname,
+    level: p.level,
+    color: p.color,
+    startTime: p.startTime,
+    lastAnswerTime: p.lastAnswerTime
+  })));
+
+  setTimeout(() => {
+    if (p.level > 5) endGame();
+    else sendQuestion(socket.id);
+  }, 800);
+});
   });
 
   socket.on('disconnect', () => {
