@@ -18,30 +18,30 @@ const joinDiv = document.getElementById('join'),
       winnerText = document.getElementById('winnerText'),
       resStats = document.getElementById('resStats');
 
-const circles = {}, maxLevel = 5;
+const circles = {};
+const maxLevel = 5;
 
-// animateCircle: along individual beam from start to flag
-function animateCircle(el) {
-  const level = el._level;
-  const startX = el._startX, startY = el._startY;
-  const flagRect = document.getElementById('flag').getBoundingClientRect();
-  const endX = flagRect.left + flagRect.width/2 - el.offsetWidth/2;
+// Movement logic
+function animateCircle(el, level) {
+  const start = el._start;
+  const flagRect = flag.getBoundingClientRect();
+  const endX = flagRect.left + flagRect.width/2 - el.offsetWidth/2 - (level === maxLevel ? 3 : 0);
   const endY = flagRect.top + flagRect.height/2 - el.offsetHeight/2;
-  const ratio = Math.min((level-1)/(maxLevel-1), 1);
-  const targetX = startX + (endX - startX)*ratio;
-  const targetY = startY + (endY - startY)*ratio;
+  const ratio = (Math.min(level, maxLevel) - 1)/(maxLevel - 1);
+  const targetX = start.x + (endX - start.x)*ratio;
+  const targetY = start.y + (endY - start.y)*ratio;
   const duration = (level >= maxLevel ? 2 : 1) + 's';
   el.style.transition = `top ${duration} ease, left ${duration} ease`;
-  el.style.left = Math.round(targetX) + 'px';
-  el.style.top = Math.round(targetY) + 'px';
+  el.style.left = `${Math.round(targetX)}px`;
+  el.style.top  = `${Math.round(targetY)}px`;
 }
 
-// Handle gameStatus
+// Redirect closed
 socket.on('gameStatus', data => {
   if (!data.open) location = '/closed.html';
 });
 
-// Join
+// Join button
 joinBtn.onclick = () => {
   const nick = nickIn.value.trim();
   if (!nick) return;
@@ -74,14 +74,16 @@ socket.on('countdown', n => {
     flag.style.display  = 'block';
     playersContainer.style.display = 'block';
     questionDiv.style.display = 'block';
+    // Show initial circles
+    // server emits playerList after countdown
   }
 });
 
-// Question
+// Show question
 socket.on('question', q => {
   qtext.textContent = q.question;
   optsDiv.innerHTML = '';
-  q.options.forEach((opt,i) => {
+  q.options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.textContent = opt;
@@ -92,54 +94,45 @@ socket.on('question', q => {
 
 // Answer result
 socket.on('answerResult', res => {
-  Array.from(optsDiv.children).forEach((b,i) => {
+  Array.from(optsDiv.children).forEach((b, i) => {
     if (i === res.correctIndex) b.classList.add('correct');
-    else if (!res.correct)    b.classList.add('wrong');
+    else if (!res.correct)     b.classList.add('wrong');
     b.disabled = true;
   });
-  setTimeout(()=>optsDiv.innerHTML='',800);
+  setTimeout(() => optsDiv.innerHTML = '', 800);
 });
 
-// PlayerList
-
+// Player list -> circles
 socket.on('playerList', list => {
-  // ensure gameDiv visible or initial after countdown
-  // render or update circles
   list.forEach(p => {
     let el = circles[p.nickname];
     if (!el) {
-      // create container div
+      // create circle
       el = document.createElement('div');
-      el.className = 'circle';
+      el.className = 'circle' + (p.nickname === self ? ' self' : '');
+      el.style.position = 'absolute';
+      el.style.background = p.color;
       // label
       const label = document.createElement('div');
-      label.className = 'player-label' + (p.nickname===self?' self':'');
+      label.className = 'player-label' + (p.nickname === self ? ' self' : '');
       label.textContent = p.nickname;
       el.append(label);
-      // style circle
-      el.style.position = 'absolute';
       // compute start coords
-      const qRect = document.getElementById('question').getBoundingClientRect();
-      const rawStartY = qRect.top - el.offsetHeight - 1;
-      const rawStartX = qRect.left + Math.random()*(qRect.width - el.offsetWidth);
-      el._startX = rawStartX;
-      el._startY = rawStartY;
-      el._level = p.level;
-      el.style.left = Math.round(rawStartX) + 'px';
-      el.style.top = Math.round(rawStartY) + 'px';
-      el.style.background = p.color;
+      const qRect = questionDiv.getBoundingClientRect();
+      const startX = qRect.left + Math.random()*(qRect.width - el.offsetWidth);
+      const startY = qRect.top - el.offsetHeight - 1;
+      el._start = { x: startX, y: startY };
       circles[p.nickname] = el;
-      document.getElementById('playersContainer').append(el);
-    } else {
-      el._level = p.level;
+      playersContainer.append(el);
     }
-    animateCircle(el);
+    // update level property
+    el._level = p.level;
+    // animate
+    animateCircle(el, p.level);
   });
 });
 
-});
-
-// GameOver
+// Game over
 socket.on('gameOver', data => {
   setTimeout(() => {
     gameDiv.classList.remove('visible');
